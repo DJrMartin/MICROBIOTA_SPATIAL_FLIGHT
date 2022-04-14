@@ -14,4 +14,6 @@ Step 2 : Quel est la meilleure normalisation ? Total sum scaling, logratio addit
 
 Step 3 : Analyse de la diversité bactérienne (Alpha et Beta) : richesse, Chao1, Simpson, Shannon, Bray-Curtis, Unifrac.
 
-Step 4 : 
+Step 4 : Analyse log poisson normée (ensemble des données) / réduction de dimension sur les données non zéros (lasso/ridge).
+
+Step 5 : Approche sans a priori
