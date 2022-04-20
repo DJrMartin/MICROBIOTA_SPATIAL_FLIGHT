@@ -11,7 +11,7 @@ L'immersion sèche est une technique où l'être humain se retrouve en suspensio
 ## TRAITEMENT DES DONNEES :
 Step 1 : Est-ce que l'échantillonnage (et donc la profondeur de séquençage de chaque échantillon) est suffissante pour avoir accès à toutes les informations ? Courbe de raréfaction.
 
-Step 2 : Quel est la meilleure normalisation ? Total sum scaling, logratio additive, logratio contré, cumulative sum scaling ou autres ?
+Step 2 : Quel est la meilleure normalisation pour la différentes approches ? Total sum scaling, logratio additive, logratio contré, cumulative sum scaling ou autres ?
 
 Step 3 : Analyse de la diversité bactérienne (Alpha et Beta) : richesse, Chao1, Simpson, Shannon, Bray-Curtis, Unifrac.
 
