@@ -16,4 +16,4 @@ Step 3 : Analyse de la diversité bactérienne (Alpha et Beta) : richesse, Chao1
 
 Step 4 : Analyse log poisson normée (ensemble des données) / réduction de dimension sur les données non zéros (lasso/ridge).
 
-Step 5 : Approche sans a priori
+Step 5 : Approche sans a priori (repondeurs/Non repondeurs)
