@@ -1,0 +1,10 @@
+CAHIER DE LABORATOIRE
+(Ajouter en haut du script les dernières informations/questions à transmettre)
+
+#####################################22.04.2022##########################################
+Observations des prétraitements :
+- CSS diminue les différences entre les groupes de manière importantes. Les diversités (richesse et alpha) associées sont très fortement correlés entre elles, voulait peut-être dire qu'il existe une perte d'information OU BIEN que les indices n'ont pas été étudiés pour ce genre de normalisation.
+
+- Comme prédit, sur les données brutes, les indices de diversité de Shannon et Simpson ne sont pas très corrélées à la richesse. Approfondir l'explication mathématique.
+
+- Quelle filtre choississons nous pour supprimer les OTUs faiblement exprimés ? ou bien nous allons directement sur le package PLN.
