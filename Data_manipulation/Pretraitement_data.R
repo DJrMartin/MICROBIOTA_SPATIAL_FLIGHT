@@ -97,7 +97,24 @@ plot(RICHNESS, SHANNON)
 
 ###Beta
 #Disimilarity between time factor
+beta_total=NULL
+for (sample in unique(experimental_condition$subject)){
+  beta=vegdist(matrix_otu[which(experimental_condition$subject==sample),], index='bray')
+  beta_total=c(beta_total, beta)
+}
+time_factor=tibble::tibble('ID'=unique(experimental_condition$subject), 'B-diversity'=beta_total, 
+               'Condition'=as.factor(substr(experimental_condition$Sample, 9,12)[-c(2,4,6,8,10,12,14,16,18,20,22,24,26,28)]))
+plot(time_factor$`B-diversity`,time_factor$Condition)
 
-#Disimilarity between 
+#Ordonate Disimilarity 
+beta_dist<-vegdist(matrix_otu, index='bray')
+mds <- metaMDS(beta_dist)
+mds_data <- as.data.frame(mds$points)
+mds_data$SampleID <- rownames(mds_data)
+mds_data$Time=experimental_condition$time
+mds_data$Sujets=experimental_condition$subject
+ggplot(mds_data, aes(x = MDS1, y = MDS2, color=Sujets, shape=Time)) +
+  geom_point()
+
 
 ##log poisson##################################################################
