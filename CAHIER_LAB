@@ -1,7 +1,16 @@
-CAHIER DE LABORATOIRE
+###############################
+##   CAHIER DE LABORATOIRE   ##
+###############################
 (Ajouter en haut du script les dernières informations/questions à transmettre)
 
-[DAVID]#####################################22.04.2022################################
+[DAVID]########################25.04.2022#####################
+J'ai tester la distance de bray-curtis en me focalisant sur le facteur temps. Si j'utilise les valeurs : 
+- Normalisées (CSS), la moyenne de diversité est de 0.22 (+/- 0.07)
+- Normalisées (TSS), la moyenne de diversité est de 0.37 (+/- 0.11)
+- Brutes, la moyenne de diversité est de 0.37 (+/- 0.12)
+La normalisation CSS semble très conservatrice (perte d'information ??)
+
+[DAVID]########################22.04.2022#####################
 Observations des prétraitements :
 - CSS diminue les différences entre les groupes de manière importantes. Les diversités (richesse et alpha) associées sont très fortement correlés entre elles, voulait peut-être dire qu'il existe une perte d'information OU BIEN que les indices n'ont pas été étudiés pour ce genre de normalisation.
 

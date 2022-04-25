@@ -1,6 +1,7 @@
 library(RColorBrewer)
 library(vegan)
 library(fossil)
+library(ggplot2)
 ###Import#####################################################################
 User='David'
 if (User=='David'){
@@ -22,8 +23,8 @@ barplot(apply(matrix_otu, 1, sum), ylab='Profondeur de sequencage', xlab='sujets
 #est suffisante pour observer l'ensemble des espèces présentes dans les échantillons.
 
 ###Normalisation##############################################################
-source('https://raw.githubusercontent.com/DJrMartin/MICROBIOTA_SPATIAL_FLIGHT/Microgravity_workflow/Data_manipulation/Functions_normalisation.R?token=GHSAT0AAAAAABTX2ZJWQGIXWW542J3QFI4CYTCPHRA')
 #Approche = BRUTE, TSS, CLR, ALR, CSS ou autres (mais il faut les implémenter)
+#Geometric Mean of Pairwise Ratio method ??
 OTU_CSS<-NORMALISATION_MICROBIOTA(matrix_otu, approches = 'CSS')
 OTU_TSS<-NORMALISATION_MICROBIOTA(matrix_otu, approches = 'TSS')
 OTU_BRUTES<-NORMALISATION_MICROBIOTA(matrix_otu, approches = 'BRUTES')
@@ -35,6 +36,7 @@ hist(as.numeric(OTU_CSS[2,]), breaks =60, main="CSS", xlab='Distribution OTU')
 hist(as.numeric(OTU_TSS[2,]),  breaks =60, main ="TSS", xlab='Distribution OTU')
 hist(as.numeric(OTU_BRUTES[2,]),  breaks =60, main ="BRUTES", xlab='Distribution OTU')
 hist(as.numeric(OTU_CLR[2,]),  breaks =60, main ="CLR", xlab='Distribution OTU')
+
 
 ###Visualisation en fonction des phylums######################################
 color_visualisation=c('red', 'grey33', 'green3','lightblue' )
@@ -97,17 +99,19 @@ plot(RICHNESS, SHANNON)
 
 ###Beta
 #Disimilarity between time factor
+dev.off()
 beta_total=NULL
 for (sample in unique(experimental_condition$subject)){
-  beta=vegdist(matrix_otu[which(experimental_condition$subject==sample),], index='bray')
+  beta=vegdist(OTU_BRUTES[which(experimental_condition$subject==sample),], index='bray')
   beta_total=c(beta_total, beta)
 }
 time_factor=tibble::tibble('ID'=unique(experimental_condition$subject), 'B-diversity'=beta_total, 
                'Condition'=as.factor(substr(experimental_condition$Sample, 9,12)[-c(2,4,6,8,10,12,14,16,18,20,22,24,26,28)]))
-plot(time_factor$`B-diversity`,time_factor$Condition)
+plot(time_factor$`B-diversity`~time_factor$Condition,
+     xlab='conditions', ylab='Bray-Curtis diversity') #p=0.37 (t.test)
 
 #Ordonate Disimilarity 
-beta_dist<-vegdist(matrix_otu, index='bray')
+beta_dist<-vegdist(OTU_CSS, index='bray')
 mds <- metaMDS(beta_dist)
 mds_data <- as.data.frame(mds$points)
 mds_data$SampleID <- rownames(mds_data)
@@ -115,6 +119,5 @@ mds_data$Time=experimental_condition$time
 mds_data$Sujets=experimental_condition$subject
 ggplot(mds_data, aes(x = MDS1, y = MDS2, color=Sujets, shape=Time)) +
   geom_point()
-
 
 ##log poisson##################################################################
