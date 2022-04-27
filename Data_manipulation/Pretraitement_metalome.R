@@ -36,4 +36,4 @@ for (var in 1:7){
        ylab=colnames(data_normalised)[var], 
        xlab='Time')
 }
-
+pairs(data_normalised)
