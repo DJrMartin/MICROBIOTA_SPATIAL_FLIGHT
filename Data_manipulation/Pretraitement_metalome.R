@@ -8,9 +8,6 @@ if (User=='David'){
 if (User=='Marion'){
   load()
 }
-if (User=='Valerie'){
-  load()
-}
 rm(User)
 
 metalome$ID=paste(as.character(substr(metalome$ID, 7,8)), rep(c(1,2)))
