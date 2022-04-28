@@ -5,12 +5,9 @@ library(ggplot2)
 ###Import#####################################################################
 User='David'
 if (User=='David'){
-  load('C:/Users/David/Desktop/MICROBIOTA_SPATIAL_FLIGHT/DATA_MICROGRAVITY_PROJECT.RData')
+  load('C:/Users/David/Dropbox/EXOMIC 2022/DATA_PROJECT_1.RData')
 }
 if (User=='Marion'){
-  load()
-}
-if (User=='Valerie'){
   load()
 }
 rm(User)
@@ -119,5 +116,3 @@ mds_data$Time=experimental_condition$time
 mds_data$Sujets=experimental_condition$subject
 ggplot(mds_data, aes(x = MDS1, y = MDS2, color=Sujets, shape=Time)) +
   geom_point()
-
-##log poisson##################################################################

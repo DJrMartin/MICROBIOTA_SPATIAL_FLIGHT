@@ -13,5 +13,14 @@ experimental_condition<-metadata
 
 ##Metalome
 metalome=read.table("metalome.csv", sep = ";", stringsAsFactors = TRUE, header=TRUE)
+metalome=as.matrix(gsub(',', '.', apply(metalome, 2, as.character)))
 
-##save(matrix_otu, species, experimental_condition, metalome, file='DATA_MICROGRAVITY_PROJECT.RData')
+#Data_anthropometrics
+morphological_data=read.table("Anthropo.csv", sep = ";", stringsAsFactors = TRUE, header=TRUE)
+morphological_data=as.matrix(gsub(',', '.', apply(morphological_data, 2, as.character)))
+
+##Data IRM
+IRM_Fe_content=read.table("IRM_Fe_content.csv", sep = ";", stringsAsFactors = TRUE, header=TRUE)
+
+save(metalome,morphological_data,IRM_Fe_content,matrix_otu, species, experimental_condition, metalome, file='DATA_PROJECT_1.RData')
+
