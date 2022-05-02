@@ -5,7 +5,7 @@ library(ggplot2)
 ###Import#####################################################################
 User='David'
 if (User=='David'){
-  load('C:/Users/David/Dropbox/EXOMIC 2022/DATA_PROJECT_1.RData')
+  load('~/Dropbox/EXOMIC 2022/DATA_PROJECT_1.RData')
 }
 if (User=='Marion'){
   load()

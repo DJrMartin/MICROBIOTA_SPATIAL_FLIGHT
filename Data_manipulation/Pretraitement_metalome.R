@@ -1,9 +1,10 @@
 ##Pretraitement du metalome et gestion du fichier pour le merger aux donnees microbiote.
 library(dplyr)
+library('FactoMineR')
 ###Import#####################################################################
 User='David'
 if (User=='David'){
-  load('C:/Users/David/Dropbox/EXOMIC 2022/DATA_PROJECT_1.RData')
+  load('~/Dropbox/EXOMIC 2022/DATA_PROJECT_1.RData')
 }
 if (User=='Marion'){
   load()
@@ -37,4 +38,3 @@ for (var in 1:7){
        ylab=colnames(data_normalised)[var], 
        xlab='Time')
 }
-pairs(data_normalised)
