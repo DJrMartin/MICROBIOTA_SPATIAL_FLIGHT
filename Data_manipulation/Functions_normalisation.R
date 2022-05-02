@@ -29,3 +29,4 @@ NORMALISATION_MICROBIOTA <- function(data, approches="BRUTES"){
   return(OTU_normalised)
 }
 
+  
