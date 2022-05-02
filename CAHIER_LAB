@@ -3,6 +3,11 @@
 ###############################
 (Ajouter en haut du script les dernières informations/questions à transmettre)
 
+[DAVID]########################02.05.2022#####################
+Toujours dans l'idée de comprendre les indices de diversité et le fonctions de normalisation. En comprenant l'intérêt de SIMPSON qui s'appuie sur les n d'espèces avec le N de l'ensemble des reads. On peut se poser la question de savoir si la profondeur de séquençage n'influe pas sur l'ensemble des paramètres de diversité.
+- CHOA1 est négativement corrélé à la profondeur de séquençage... Le biais estimé par l'indice induit-il un biais contraire ?
+- Lorsque l'on utilise CSS alors les indices de SIMPSON sont compris entre 0.9945 et 0.9965 et sont fortement corrélée avec la profondeur de séquençage.
+
 [DAVID]########################25.04.2022#####################
 J'ai tester la distance de bray-curtis en me focalisant sur le facteur temps. Si j'utilise les valeurs : 
 - Normalisées (CSS), la moyenne de diversité est de 0.22 (+/- 0.07)
