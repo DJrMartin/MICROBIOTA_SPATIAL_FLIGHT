@@ -10,7 +10,7 @@ if (User=='Marion'){
 }
 rm(User)
 layout(matrix(c(1,2,3), nrow=3))
-ind=matrix_otu[2,which(matrix_otu[2,]>0)]
+ind=matrix_otu[2,which(matrix_otu[2,]>0)] #modifier la borne, l'individu..
 rare_curve=NULL
 
 for (i in 1:length(ind)){
