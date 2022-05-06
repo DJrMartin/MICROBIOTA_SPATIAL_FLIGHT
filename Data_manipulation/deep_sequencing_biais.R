@@ -3,7 +3,7 @@ library(fossil)
 ###Import#####################################################################
 User='David'
 if (User=='David'){
-  load('C:/Users/David/Dropbox/EXOMIC 2022/DATA_PROJECT_1.RData')
+  load("/Users/martind/Dropbox/EXOMIC 2022/DATA_PROJECT_1.RData")
 }
 if (User=='Marion'){
   load()
@@ -34,4 +34,14 @@ range(rare_rich$Richesse, rare_chao$Richesse)
 plot(rare_rich, ylim=c(range(rare_rich$Richesse, rare_chao$Richesse)))
 points(rare_chao, col='red')
 sd(tail(rc, 10))
+
+######déstructuration de la table de comptage pour voir la différence des reads.
+
+plot(sort(matrix_otu[1,which(matrix_otu[1,]>0)], decreasing = T))
+plot(sort(log(matrix_otu[1,which(matrix_otu[1,]>0)])))
+
+hist((log(abs(rnorm(8000, sd =20)))))
+
+rnorm(8000, mean=0, sd =1)
+
 
