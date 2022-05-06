@@ -36,12 +36,16 @@ points(rare_chao, col='red')
 sd(tail(rc, 10))
 
 ######déstructuration de la table de comptage pour voir la différence des reads.
+new_data=as.numeric(sort(matrix_otu[1,which(matrix_otu[1,]>0)], decreasing = T))
+mean(new_data)
+plot(new_data)
 
-plot(sort(matrix_otu[1,which(matrix_otu[1,]>0)], decreasing = T))
-plot(sort(log(matrix_otu[1,which(matrix_otu[1,]>0)])))
-
-hist((log(abs(rnorm(8000, sd =20)))))
-
-rnorm(8000, mean=0, sd =1)
-
+cnt=1
+while (cnt<300){
+  inf=new_data<mean(new_data)
+  new_data[inf==T]=as.numeric(new_data[inf==T])*2
+  new_data[inf==F]=as.numeric(new_data[inf==F])/2
+  points(new_data)
+  cnt=cnt+1
+}
 
