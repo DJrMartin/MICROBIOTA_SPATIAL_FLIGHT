@@ -14,11 +14,9 @@ library(fossil)
 ## I) Bilan sur matrix_OTU :
 
 ```{r}
-<<<<<<< HEAD
 load('/Users/martind/Desktop/DATA_PROJECT_1.RData')
-=======
 load('C:/Users/33638/Documents/stage/MICROBIOTA_SPATIAL_FLIGHT/DATA_PROJECT_1.RData')
->>>>>>> 07b0682a958a7e1bfd818e6db5378a75547bb455
+
 id <- row.names(matrix_otu)
 matrix_otu <- tibble(data.frame(matrix_otu))
 row.names(matrix_otu) <- id
