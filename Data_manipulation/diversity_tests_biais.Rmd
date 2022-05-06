@@ -14,7 +14,11 @@ library(fossil)
 ## I) Bilan sur matrix_OTU :
 
 ```{r}
+<<<<<<< HEAD
 load('/Users/martind/Desktop/DATA_PROJECT_1.RData')
+=======
+load('C:/Users/33638/Documents/stage/MICROBIOTA_SPATIAL_FLIGHT/DATA_PROJECT_1.RData')
+>>>>>>> 07b0682a958a7e1bfd818e6db5378a75547bb455
 id <- row.names(matrix_otu)
 matrix_otu <- tibble(data.frame(matrix_otu))
 row.names(matrix_otu) <- id
@@ -364,8 +368,244 @@ points(x=rare_curves$deep,y=rare_curves$Chao, col='red')
 
 ## Indice de Simpson
 
+Interprétation : La probabilité que deux bactéries tirées au hasard dans l'échantillon soient d'espèces différentes:  
+- Quand simpson tend vers 0 : une espèce domine les autres, peu de diversification   
+- Quand simpson tend vers 1 : grande diversification  
+
+```{r}
+#Simpson
+SIMPSON=diversity(matrix_otu, index='simpson')
+plot(SIMPSON,main="Indice de Simpson pour les 28 sujets ")
+```
+Globalement, indices de SIMPSON élevés (proches de 1) : proba élevée de tomber sur deux bactéries différentes.
+
+Est-ce que les sujets avec les indices un peu plus faible sont ceux avec la profondeur de séquençage la plus faible ?
+On peut regarder la corrélation entre la profondeur de séquençage et l'indice de SIMPSON:
+
+**Lien avec la profondeur de séquençage**
+```{r}
+profondeur_sequencage <- apply(matrix_otu, 1, sum)
+plot(x=profondeur_sequencage,SIMPSON, main="SIMPSON en fonction de la profondeur de séquencage \n pour les 28 sujets")
+```
+
+```{r}
+summary(lm(SIMPSON~profondeur_seq))
+```
+
+
+Il n'existe pas de lien linéaire entre SIMPSON et la profondeur de séquencage.
+
+Peut être car de toute façon la profondeur de séquencage est suffisamment élevée dans tous les cas.
+
+**Lien avec la richesse**
+```{r}
+plot(RICHNESS,SIMPSON, main="SIMPSON en fonction de la richesse spécifique \n pour les 28 sujets")
+```
+
+```{r}
+summary(lm(SIMPSON~RICHNESS))
+```
+Cette fois on a une très légère corrélation positive.
+
+
+**En faisant varier la taille des séquences**
+```{r}
+RARE_CURVE_SIMPSON <- function(indiv,filtre_inf = 0,filtre_sup = max(ind)){
+      #on choisit un individu 
+      ind= matrix_otu[indiv,]
+      ind= t(ind[which(ind>filtre_inf & ind<=filtre_sup)])
+      
+      # On veut passer d'un vecteur de comptage aux données de séquençage d'origine
+      # on va donc répéter le nom des OTU autant de fois qu'ils ont été comptés et en faire un vecteur
+      sequencage=NULL
+      for (i in 1:length(ind)){
+        new=rep(rownames(ind)[i], ind[i])
+        sequencage=c(sequencage,new)
+      }
+      
+      # Puis on regarde l'évolution de simpson selon la taille de la séquence
+      simpson=NULL
+      for (j in seq(1,length(sequencage), by=100)){
+        u=sample(as.factor(sequencage), size=j)
+        simpson=c(simpson,diversity(table(u), index='simpson'))
+      }
+
+      # On crée un data frame pour associer les bonnes profondeurs de séquencages aux valeurs calculées
+      rare_curves=data.frame("deep"=seq(1,length(sequencage), by=100),"simpson"=simpson)
+
+      #on retourne le résultat
+      return(rare_curves)
+
+}
+
+```
+
+- avec **aucun filtre** :
+```{r}
+rare_curves <- RARE_CURVE_SIMPSON(indiv = "BG-I-D0-CTL")
+plot(x=rare_curves$deep,y=rare_curves$simpson , main="Evolution indice de simpson selon profondeur de séquençage \n en conservant tous les OTU" )
+
+```
+
+- en **enlevant les OTU apparus 1 fois** :
+```{r}
+rare_curves <- RARE_CURVE_SIMPSON(indiv = "BG-I-D0-CTL",filtre_inf = 1)
+plot(x=rare_curves$deep,y=rare_curves$simpson , main="Evolution indice de simpson selon profondeur de séquençage \n si les OTU apparus 1 fois sont supprimés" )
+
+```
+
+- en **enlevant les OTU apparus moins de 5 fois** :
+```{r}
+rare_curves <- RARE_CURVE_SIMPSON(indiv = "BG-I-D0-CTL",filtre_inf=5)
+plot(x=rare_curves$deep,y=rare_curves$simpson , main="Evolution indice de simpson selon profondeur de séquençage \n si les OTU apparus moins de 5 fois sont supprimés" )
+
+```
+
+Enlever les OTU apparus peu de fois n'impacte pas l'indice de SIMPSON, on a toujours une grande proba de tomber sur 2 OTU différents.
+
+
+- en **enlevant les OTU apparus plus de 50 fois** :
+```{r}
+rare_curves <- RARE_CURVE_SIMPSON(indiv = "BG-I-D0-CTL",filtre_sup=50)
+plot(x=rare_curves$deep,y=rare_curves$simpson , main="Evolution indice de simpson selon profondeur de séquençage \n si les OTU apparus plus de 50 fois sont supprimés" )
+
+```
+Là encore l'indice de Simpson reste très élevé au bout de peu de séquencage
+
+
+
 
 
 ## Indice de Shannon
+```{r}
+#Shannon
+SHANNON<-diversity(matrix_otu, index='shannon')
+plot(SHANNON,main="Indice de Shannon pour les 28 sujets ")
+```
 
+!! pas une probabilité contrairement à Simpson, souvent entre 1 et 5.
+
+La valeur de l’indice varie de :  
+- 0 (une seule espèce, ou bien une espèce dominant très largement toutes les autres)     
+- à log(S) (lorsque toutes les espèces ont même abondance). 
+
+
+
+Est-ce que les sujets avec les indices un peu plus faible sont ceux avec la profondeur de séquençage la plus faible ?
+On peut regarder la corrélation entre la profondeur de séquençage et l'indice de Shannon:
+
+**Lien avec la profondeur de séquençage**
+```{r}
+profondeur_sequencage <- apply(matrix_otu, 1, sum)
+plot(x=profondeur_sequencage,SHANNON, main="SHANNON en fonction de la profondeur de séquencage \n pour les 28 sujets")
+```
+
+```{r}
+summary(lm(SHANNON~profondeur_seq))
+```
+
+Il n'existe pas de lien linéaire entre SHANNON et la profondeur de séquencage.
+
+Peut être car de toute façon la profondeur de séquencage est suffisamment élevée dans tous les cas.
+
+**Lien avec la richesse**
+```{r}
+plot(RICHNESS,SHANNON, main="SHANNON en fonction de la richesse spécifique \n pour les 28 sujets")
+```
+
+```{r}
+summary(lm(SHANNON~RICHNESS))
+```
+Cette fois on a une corrélation positive.
+
+
+**En faisant varier la taille des séquences**
+```{r}
+RARE_CURVE_SHANNON <- function(indiv,filtre_inf = 0,filtre_sup = max(ind)){
+      #on choisit un individu 
+      ind= matrix_otu[indiv,]
+      ind= t(ind[which(ind>filtre_inf & ind<=filtre_sup)])
+      
+      # On veut passer d'un vecteur de comptage aux données de séquençage d'origine
+      # on va donc répéter le nom des OTU autant de fois qu'ils ont été comptés et en faire un vecteur
+      sequencage=NULL
+      for (i in 1:length(ind)){
+        new=rep(rownames(ind)[i], ind[i])
+        sequencage=c(sequencage,new)
+      }
+      
+      # Puis on regarde l'évolution de simpson selon la taille de la séquence
+      shannon=NULL
+      for (j in seq(1,length(sequencage), by=100)){
+        u=sample(as.factor(sequencage), size=j)
+        shannon=c(shannon,diversity(table(u), index='shannon'))
+      }
+
+      # On crée un data frame pour associer les bonnes profondeurs de séquencages aux valeurs calculées
+      rare_curves=data.frame("deep"=seq(1,length(sequencage), by=100),"shannon"=shannon)
+
+      #on retourne le résultat
+      return(rare_curves)
+
+}
+
+```
+
+- avec **aucun filtre** :
+```{r}
+rare_curves <- RARE_CURVE_SHANNON(indiv = "BG-I-D0-CTL")
+plot(x=rare_curves$deep,y=rare_curves$shannon , main="Evolution indice de shannon selon profondeur de séquençage \n en conservant tous les OTU" )
+
+```
+
+- en **enlevant les OTU apparus 1 fois** :
+```{r}
+rare_curves <- RARE_CURVE_SHANNON(indiv = "BG-I-D0-CTL",filtre_inf = 1)
+plot(x=rare_curves$deep,y=rare_curves$shannon , main="Evolution indice de shannon selon profondeur de séquençage \n si les OTU apparus 1 fois sont supprimés" )
+
+```
+
+- en **enlevant les OTU apparus moins de 5 fois** :
+```{r}
+rare_curves <- RARE_CURVE_SHANNON(indiv = "BG-I-D0-CTL",filtre_inf=5)
+plot(x=rare_curves$deep,y=rare_curves$shannon , main="Evolution indice de shannon selon profondeur de séquençage \n si les OTU apparus moins de 5 fois sont supprimés" )
+
+```
+
+Enlever les OTU apparus peu de fois n'impacte pas vraiment l'indice de SIMPSON
+
+
+- en **enlevant les OTU apparus plus de 50 fois** :
+```{r}
+rare_curves <- RARE_CURVE_SHANNON(indiv = "BG-I-D0-CTL",filtre_sup=50)
+plot(x=rare_curves$deep,y=rare_curves$shannon , main="Evolution indice de shannon selon profondeur de séquençage \n si les OTU apparus plus de 50 fois sont supprimés" )
+
+```
+
+
+
+
+**RQ**
+```{r}
+plot(SIMPSON,SHANNON)
+```
+Les deux indices sont très corrélés, normal qu'on arrive aux mêmes conclusions...
+
+
+
+### DIVERSITE ARBRE PHYLOGENETIQUE
+https://fr.wikipedia.org/wiki/Diversit%C3%A9_phylog%C3%A9n%C3%A9tique
+Mesures
+De très nombreux indices de diversité phylogénétique ont été développés avec les années. Il existe plus de 70 mesures de la diversité phylogénétique, dont plusieurs sont fortement corrélées5. Certains indices ont incorporé l’abondance des différentes unités taxonomiques dans le calcul. Ainsi, pour ces indices, les espèces abondantes ont un poids supérieur ou inférieur comparativement aux espèces rares. D’autres comparent différents ensembles de taxa, un peu comme le fait la diversité bêta. Par exemple, certains indices calculent la longueur des branches des espèces uniques à chaque site. Finalement, certains indices combinent la diversité phylogénétique et le nombre d'espèces. Tous ces indices peuvent être divisés en trois catégories selon ce qu’ils cherchent à mesurer : la richesse, la divergence et la régularité.
+
+
+Les indices de diversité phylogénétiques peuvent être divisés en trois catégories : Richesse, divergence et régularité. La figure est inspirée de l'article de Caroline Tucker et collaborateurs5.
+Richesse
+Les mesures de richesse phylogénétique servent à quantifier la différence phylogénétique d’un ensemble de taxa5. Ainsi, ces indices permettent de mesurer l’histoire évolutive accumulée par un ensemble de taxa. L'indice le plus commun est la diversité phylogénétique proposée par Faith1. Celle-ci fait la somme des longueurs de branches de l’arbre incluant tous les membres de l’ensemble. Au lieu d'utiliser la longueur des branches, d'autres indices font la somme de la distance entre toutes les paires d'espèces d'un ensemble.
+
+Divergence
+Les mesures de divergence cherchent à quantifier la distribution des taxa d’un ensemble5. Par exemple, il est possible de calculer la divergence phylogénétique en divisant la richesse phylogénétique par la richesse spécifique. Ainsi, on obtient la longueur de branches moyennes reliant chaque unité taxonomique. Une autre mesure courante de la divergence est de calculer la moyenne des longueurs de branches entre chaque paire de taxa. Ainsi, on mesure la distance phylogénétique moyenne entre les taxa. Ces indices servent donc à quantifier la différence entre les unités taxonomiques d’un ensemble d’intérêt.
+
+Régularité
+La régularité mesure à quel point les taxa d’un ensemble sont également distancés phylogénétiquement5. En d’autres mots, on compare la distribution des taxa d’une phylogénie à un arbre phylogénétique dont tous les taxa ont une distance évolutive égale. La régularité est maximale lorsque toutes les paires d’espèces sont également distancées sur l’arbre phylogénétique. Au contraire, si certaines espèces sont très proches et d'autres éloignées, la régularité sera inférieure. Une mesure permettant de quantifier cette régularité phylogénétique est la variance des distances entre chaque paire d’un ensemble.
 
