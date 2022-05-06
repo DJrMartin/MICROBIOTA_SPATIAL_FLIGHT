@@ -14,9 +14,7 @@ library(fossil)
 ## I) Bilan sur matrix_OTU :
 
 ```{r}
-load('/Users/martind/Desktop/DATA_PROJECT_1.RData')
 load('C:/Users/33638/Documents/stage/MICROBIOTA_SPATIAL_FLIGHT/DATA_PROJECT_1.RData')
-
 id <- row.names(matrix_otu)
 matrix_otu <- tibble(data.frame(matrix_otu))
 row.names(matrix_otu) <- id
@@ -122,6 +120,12 @@ Remarques :
 - et qu'on a quelques pics correspondants à des OTU qui ont été comptés beaucoup de fois (par exemple 3502), mais cette valeur de comptage est unique (faible pourcentage en ordonnée)  => cela est logique, faible proba de compter exactement 3502 fois exactement un OTU.
 
 Cet état des lieux de la base de données va permettre par la suite de nuancer les indicateurs de diversité 
+
+
+```{r}
+
+```
+
 
 
 # 2) Normalisation 
@@ -591,7 +595,79 @@ Les deux indices sont très corrélés, normal qu'on arrive aux mêmes conclusio
 
 
 
-### DIVERSITE ARBRE PHYLOGENETIQUE
+
+
+## Les données suivent loi log-normale ?
+
+
+```{r}
+#essai sur sujet 1
+ind <- sort(matrix_otu[1,which(matrix_otu[1,]!=0)],decreasing = T)
+
+plot(x=1:259,y=ind)
+
+```
+
+
+Loi log-normale semble possible. 
+
+```{r}
+log(apply(ind,1,FUN=mean))
+log(apply(ind,1,FUN=sd))
+```
+
+
+
+```{r}
+library(stats)
+```
+
+```{r}
+simul_ln <- rlnorm(13000, meanlog = 1, sdlog =1.5)
+simul_ln_int <- ceiling(simul_ln)
+hist(simul_ln_int,breaks = 60)
+```
+
+```{r}
+simul_ln <- rlnorm(13000, meanlog = 1, sdlog =1)
+simul_ln_int <- ceiling(simul_ln)
+hist(simul_ln_int,breaks = 60)
+```
+
+
+```{r}
+simul_ln <- rlnorm(13000, meanlog = 1, sdlog =3/4)
+simul_ln_int <- ceiling(simul_ln)
+hist(simul_ln_int,breaks = 60)
+```
+
+```{r}
+simul_ln <- rlnorm(13000, meanlog = 1, sdlog =2/3)
+simul_ln_int <- ceiling(simul_ln)
+hist(simul_ln_int,breaks = 60)
+```
+
+```{r}
+simul_ln <- rlnorm(13000, meanlog = 1, sdlog =1/2)
+simul_ln_int <- ceiling(simul_ln)
+hist(simul_ln_int,breaks = 60)
+```
+
+
+```{r}
+simul_ln <- rlnorm(13000, meanlog = 1, sdlog =1/5)
+simul_ln_int <- ceiling(simul_ln)
+hist(simul_ln_int,breaks = 60)
+```
+
+
+
+
+
+
+
+
+## DIVERSITE ARBRE PHYLOGENETIQUE
 https://fr.wikipedia.org/wiki/Diversit%C3%A9_phylog%C3%A9n%C3%A9tique
 Mesures
 De très nombreux indices de diversité phylogénétique ont été développés avec les années. Il existe plus de 70 mesures de la diversité phylogénétique, dont plusieurs sont fortement corrélées5. Certains indices ont incorporé l’abondance des différentes unités taxonomiques dans le calcul. Ainsi, pour ces indices, les espèces abondantes ont un poids supérieur ou inférieur comparativement aux espèces rares. D’autres comparent différents ensembles de taxa, un peu comme le fait la diversité bêta. Par exemple, certains indices calculent la longueur des branches des espèces uniques à chaque site. Finalement, certains indices combinent la diversité phylogénétique et le nombre d'espèces. Tous ces indices peuvent être divisés en trois catégories selon ce qu’ils cherchent à mesurer : la richesse, la divergence et la régularité.
