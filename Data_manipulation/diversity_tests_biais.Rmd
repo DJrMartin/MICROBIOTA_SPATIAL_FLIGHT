@@ -14,7 +14,7 @@ library(fossil)
 ## I) Bilan sur matrix_OTU :
 
 ```{r}
-load('DATA_PROJECT_1.RData')
+load('/Users/martind/Desktop/DATA_PROJECT_1.RData')
 id <- row.names(matrix_otu)
 matrix_otu <- tibble(data.frame(matrix_otu))
 row.names(matrix_otu) <- id
