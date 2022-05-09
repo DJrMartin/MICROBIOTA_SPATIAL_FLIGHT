@@ -1,5 +1,6 @@
 library(vegan)
 library(fossil)
+library(corrplot)
 ###Import#####################################################################
 User='David'
 if (User=='David'){
@@ -23,7 +24,7 @@ rc=rshannon=rchao=NULL
 for (j in seq(1,length(rare_curve), by=100)){
   u=sample(as.factor(rare_curve), size=j)
   rc=c(rc,length(unique(u)))
-  rshannon=c(rshannon,diversity(table(u), index='simpson'))
+  rshannon=c(rshannon,diversity(table(u), index='shannon'))
   rchao=c(rchao,chao1(table(u)))
 }
 rare_rich=data.frame("deep"=seq(1,length(rare_curve), by=100),"Richesse"=rc)
@@ -38,7 +39,7 @@ sd(tail(rc, 10))
 set.seed(123)
 cnt=1
 rsimpson=rshannon=rchao=rc=NULL
-while (cnt<61){
+while (cnt<=200){
   u=sample(as.factor(rare_curve), size=200)
   rc=c(rc,length(unique(u)))
   rsimpson=c(rsimpson,diversity(table(u), index='simpson'))
@@ -46,8 +47,17 @@ while (cnt<61){
   rchao=c(rchao,chao1(table(u)))
   cnt=cnt+1
 }
-boxplot(rc)
-boxplot(rsimpson)
-boxplot(rshannon)
-boxplot(rchao)
+layout(matrix(c(1,2,3,4), nrow = 1))
+boxplot(rc, main='richesse')
+boxplot(rsimpson, main='Simpson') #mean est identique à la valeur réelle (0.95)
+boxplot(rshannon, main = "Shannon") #mean est inférieur à la valeur réelle (3.8)
+boxplot(rchao, main = "Chao")
+corrplot(cor(data.frame('Chao'=rchao, 'richesse'=rc, 'Simspon'=rsimpson, 'Shannon'=rshannon)),type='upper')
+
+##distribution pour les extrémités de shannon
+which(rshannon==max(rshannon))
+plot(sort(table(u)[which(table(u)>0)], decreasing = T))
+which(rc==min(rc))
+plot(sort(table(u)[which(table(u)>0)], decreasing = T))
+
 
