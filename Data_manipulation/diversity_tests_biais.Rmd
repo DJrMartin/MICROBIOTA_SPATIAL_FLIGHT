@@ -626,23 +626,25 @@ library(stats)
 ```
 
 ```{r}
-simul_ln <- rlnorm(13000, meanlog = 1, sdlog =1.5)
+simul_ln <- rlnorm(80, meanlog = 1, sdlog =1.5)
 simul_ln_int <- ceiling(simul_ln)
 hist(simul_ln_int,breaks = 60)
 
-
+library(vegan)
 divers=richness=NULL
-n=13000
-for(i in seq(0, 2, by=0.05)){
+n=80
+for(i in seq(0, 10, by=0.5)){
   simul_ln <- rlnorm(n, meanlog = 1, sdlog =i)
   simul_ln_int <- floor(simul_ln)
-  hist(simul_ln,breaks = 60)
+  plot(simul_ln)
   divers= c(divers, diversity(simul_ln_int, index='simpson'))
   richness=c(richness,length(unique(simul_ln_int)))
 }
 plot(divers)
 plot(richness)
-plot(sort(floor(rlnorm(n, meanlog = 1, sdlog =0.1)),decreasing =T))
+
+###Commence à se destructurer à partir de 2-3 sd
+plot(sort(floor(rlnorm(n, meanlog = 1, sdlog =4)),decreasing =T))
 ```
 
 ```{r}
