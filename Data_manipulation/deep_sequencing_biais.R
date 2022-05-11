@@ -4,7 +4,7 @@ library(corrplot)
 ###Import#####################################################################
 User='David'
 if (User=='David'){
-  load( "/Users/martind/Desktop/RData_Microgravity_updata.RData")
+  load( "/Users/martind/Dropbox/Exomic 2022/RData_Microgravity_updata.RData")
 }
 if (User=='Marion'){
   load()
@@ -35,29 +35,24 @@ plot(rare_rich, ylim=c(range(rare_rich$Richesse, rare_chao$Richesse)))
 points(rare_chao, col='red')
 sd(tail(rc, 10))
 
-##Choix au hazard de 200 bactéries 100x pour étudier la variabilité des indices de diversité
-set.seed(123)
+plot(x=seq(1,length(rare_curve), by=100) , rshannon, xlab='profondeur de séquençage',
+     ylab='Entropy')
+
+##Selection d'variables observé.
+
+entropy_variability=all_matrice=NULL
 cnt=1
-rsimpson=rshannon=rchao=rc=NULL
-while (cnt<=200){
-  u=sample(as.factor(rare_curve), size=200)
-  rc=c(rc,length(unique(u)))
-  rsimpson=c(rsimpson,diversity(table(u), index='simpson'))
-  rshannon=c(rshannon,diversity(table(u), index='shannon'))
-  rchao=c(rchao,chao1(table(u)))
+while(cnt<100){
+  entropy=NULL
+  for (j in seq(1,length(ind), by=1)){
+    u=sample(as.factor(ind), size=j)
+    entropy=c(entropy,diversity(as.numeric(as.character(u)), index='shannon'))
+  }
+  entropy_variability=data.frame(cbind(entropy_variability,entropy))
   cnt=cnt+1
 }
-layout(matrix(c(1,2,3,4), nrow = 1))
-boxplot(rc, main='richesse')
-boxplot(rsimpson, main='Simpson') #mean est identique à la valeur réelle (0.95)
-boxplot(rshannon, main = "Shannon") #mean est inférieur à la valeur réelle (3.8)
-boxplot(rchao, main = "Chao")
-corrplot(cor(data.frame('Chao'=rchao, 'richesse'=rc, 'Simspon'=rsimpson, 'Shannon'=rshannon)),type='upper')
 
-##distribution pour les extrémités de shannon
-which(rshannon==max(rshannon))
-plot(sort(table(u)[which(table(u)>0)], decreasing = T))
-which(rc==min(rc))
-plot(sort(table(u)[which(table(u)>0)], decreasing = T))
+boxplot(t(entropy_variability[,-1]), xlab="nb d'èspeces", ylab='Entropy',
+        main = "Variabilité de l'entropy (300 tirages)")
 
 
