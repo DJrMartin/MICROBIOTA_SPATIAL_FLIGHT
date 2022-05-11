@@ -16,7 +16,7 @@ library(fossil)
 ```{r}
 
 #load('/Users/martind/Desktop/DATA_PROJECT_1.RData')
-#load('C:/Users/33638/Documents/stage/MICROBIOTA_SPATIAL_FLIGHT/DATA_PROJECT_1.RData')
+load('C:/Users/33638/Documents/stage/MICROBIOTA_SPATIAL_FLIGHT/DATA_PROJECT_1.RData')
 
 id <- row.names(matrix_otu)
 matrix_otu <- tibble(data.frame(matrix_otu))
