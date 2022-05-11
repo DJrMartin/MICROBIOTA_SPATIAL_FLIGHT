@@ -40,9 +40,9 @@ plot(x=seq(1,length(rare_curve), by=100) , rshannon, xlab='profondeur de séquen
 
 ##Selection d'variables observé.
 
-entropy_variability=NULL
+entropy_variability=all_matrice=NULL
 cnt=1
-while(cnt<300){
+while(cnt<100){
   entropy=NULL
   for (j in seq(1,length(ind), by=1)){
     u=sample(as.factor(ind), size=j)
@@ -54,4 +54,5 @@ while(cnt<300){
 
 boxplot(t(entropy_variability[,-1]), xlab="nb d'èspeces", ylab='Entropy',
         main = "Variabilité de l'entropy (300 tirages)")
+
 
