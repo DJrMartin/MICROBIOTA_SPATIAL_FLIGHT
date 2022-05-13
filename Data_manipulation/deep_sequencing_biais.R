@@ -55,4 +55,17 @@ while(cnt<100){
 boxplot(t(entropy_variability[,-1]), xlab="nb d'èspeces", ylab='Entropy',
         main = "Variabilité de l'entropy (300 tirages)")
 
+ENTROPY=NULL
+otu=NULL
+filtre=species[,6]
+for (j in as.character(unique(filtre))){
+  sum_reads=apply(OTU_normalised[, which(filtre==j)], 1,sum)
+  otu=cbind(otu,sum_reads)
+}
 
+ENTROPY=cbind(ENTROPY, diversity(matrix_otu, index='shannon'))
+colnames(ENTROPY)=colnames(species)[2:7]
+plot(ENTROPY[1,], type='l')
+for (i in 2:10){
+  lines(ENTROPY[i,])
+}
