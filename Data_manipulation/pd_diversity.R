@@ -19,9 +19,11 @@ plotTree(treefile,type="fan",fsize=0.7,lwd=1,
          ftype="i")
 
 
+###### phylogenetic diversity : prend en compte seulement la parenté :
 # The pd function returns two values for each community, Faith's PD and species richness (SR).
 pd <- pd(matrix_otu, treefile)
 pd
+
 plot(x=1:28,y=pd$PD,main="PD ")
 
 
