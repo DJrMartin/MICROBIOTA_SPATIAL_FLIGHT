@@ -259,209 +259,127 @@ shannon <- diversity(vect_otu, index='shannon')
 
 
 ###############################
-#### REGROUPEMENT ###########
+#### REGROUPEMENT : pour indiv shannon max ###########
 ##############################
 t_matrix_otu_species <- cbind(t(matrix_otu),species)
 t_matrix_otu_species <- tibble::rownames_to_column(t_matrix_otu_species,"OTU")
 t_matrix_otu_species <- tibble(t_matrix_otu_species)
 summary(t_matrix_otu_species)
 
-
 #### Phylum-----------
-
 Phylum_groupes <- t_matrix_otu_species %>% 
   select(c("BG-I-D0-CTL" ,31))  %>%   #séléctionne la colonne=l'individu, et la colonne de regroupement (ici family)
   rename(c(Individu="BG-I-D0-CTL",Groupe=Phylum)) %>% 
   group_by(Groupe) %>% 
   summarize(effectif_moyen=sum(Individu))
-
 vect_otu <- ceiling(as.data.frame(Phylum_groupes)$effectif_moyen)
 names(vect_otu) <- as.data.frame(Phylum_groupes)$Groupe
 
 #vecteur des probabilités:
 p <- vect_otu/sum(vect_otu)
-
-#---Fct D'information I(p)---------------
-# I(p)=-log(p) est la fonction d'information pour l'entropie/shannon :
-# un OTU apparu peu de fois est associé à une information importante, Ip fct décroissante de p
+#Fct D'information I(p)
 Ip=-log(p)
-# on représente Ip en fonction de p:
-plot(x=p,y=Ip, main="Fonction d'information",xlim=c(0,1),ylim=c(0,10))
-#Beaucoup de Proba faibles donc associées à beaucoup d'informations
-
-
-#----Qt d'information H(p)-----------------
-# on représente les contributions (absolues) de chaque bactérie 
-# à la valeur totale de l'entropie
+#Qt d'information H(p)
 contrib<-p*Ip
 plot(x=p,y=contrib,xlim=c(0,0.55),ylim=c(0,0.5), main="Contribution de chaque groupe de Phylum \n à la valeur totale de l'entropie ")
 abline(v=exp(-1),col="red")
-
-
 #l'indice d'entropie (=shannon) est la somme des termes/contributions -p*log(p)
 shannon_Phylum <- sum(p*Ip)
 
+#### Class-----------
+Class_groupes <- t_matrix_otu_species %>% 
+  select(c("BG-I-D0-CTL" ,32))  %>%   #séléctionne la colonne=l'individu, et la colonne de regroupement (ici family)
+  rename(c(Individu="BG-I-D0-CTL",Groupe=Class)) %>% 
+  group_by(Groupe) %>% 
+  summarize(effectif_moyen=sum(Individu))
 
+vect_otu <- ceiling(as.data.frame(Class_groupes)$effectif_moyen)
+names(vect_otu) <- as.data.frame(Class_groupes)$Groupe
+vect_otu <- vect_otu[vect_otu!=0]
 
+#vecteur des probabilités:
+p <- vect_otu/sum(vect_otu)
+#Fct D'information I(p)
+Ip=-log(p)
+#Qt d'information H(p)
+contrib<-p*Ip
+plot(x=p,y=contrib,xlim=c(0,0.55),ylim=c(0,0.5), main="Contribution de chaque groupe de Phylum \n à la valeur totale de l'entropie ")
+abline(v=exp(-1),col="red")
+#l'indice d'entropie (=shannon) est la somme des termes/contributions -p*log(p)
+shannon_Class <- sum(p*Ip)
 
 #### Order-----------
-
 Order_groupes <- t_matrix_otu_species %>% 
   select(c("BG-I-D0-CTL" ,33))  %>%   #séléctionne la colonne=l'individu, et la colonne de regroupement (ici order)
   rename(c(Individu="BG-I-D0-CTL",Groupe=Order)) %>% 
   group_by(Groupe) %>% 
   summarize(effectif_moyen=sum(Individu))
 
-
 vect_otu <- ceiling(as.data.frame(Order_groupes)$effectif_moyen)
 names(vect_otu) <- as.data.frame(Order_groupes)$Groupe
 vect_otu <- vect_otu[vect_otu!=0]
 
 #vecteur des probabilités:
 p <- vect_otu/sum(vect_otu)
-
-#---Fct D'information I(p)---------------
-# I(p)=-log(p) est la fonction d'information pour l'entropie/shannon :
-# un OTU apparu peu de fois est associé à une information importante, Ip fct décroissante de p
+#Fct D'information I(p)
 Ip=-log(p)
-# on représente Ip en fonction de p:
-plot(x=p,y=Ip, main="Fonction d'information",xlim=c(0,1),ylim=c(0,10))
-#Beaucoup de Proba faibles donc associées à beaucoup d'informations
-
-
-#----Qt d'information H(p)-----------------
-# on représente les contributions (absolues) de chaque bactérie 
-# à la valeur totale de l'entropie
+#Qt d'information H(p)
 contrib<-p*Ip
 plot(x=p,y=contrib,xlim=c(0,0.55),ylim=c(0,0.5), main="Contribution de chaque groupe de Order \n à la valeur totale de l'entropie ")
 abline(v=exp(-1),col="red")
-
 
 #l'indice d'entropie (=shannon) est la somme des termes/contributions -p*log(p)
 shannon_Order <- sum(p*Ip)
 
 
-
-
 #### Family-----------
-
 Family_groupes <- t_matrix_otu_species %>% 
   select(c("BG-I-D0-CTL" ,34))  %>%   #séléctionne la colonne=l'individu, et la colonne de regroupement (ici family)
   rename(c(Individu="BG-I-D0-CTL",Groupe=Family)) %>% 
   group_by(Groupe) %>% 
   summarize(effectif_moyen=sum(Individu))
 
-
 vect_otu <- ceiling(as.data.frame(Family_groupes)$effectif_moyen)
 names(vect_otu) <- as.data.frame(Family_groupes)$Groupe
 vect_otu <- vect_otu[vect_otu!=0]
 
-
 #vecteur des probabilités:
 p <- vect_otu/sum(vect_otu)
-
-#---Fct D'information I(p)---------------
-# I(p)=-log(p) est la fonction d'information pour l'entropie/shannon :
-# un OTU apparu peu de fois est associé à une information importante, Ip fct décroissante de p
+#Fct D'information I(p)
 Ip=-log(p)
-# on représente Ip en fonction de p:
-plot(x=p,y=Ip, main="Fonction d'information",xlim=c(0,1),ylim=c(0,10))
-#Beaucoup de Proba faibles donc associées à beaucoup d'informations
-
-
-#----Qt d'information H(p)-----------------
-# on représente les contributions (absolues) de chaque bactérie 
-# à la valeur totale de l'entropie
+#Qt d'information H(p)
 contrib<-p*Ip
 plot(x=p,y=contrib,xlim=c(0,0.55),ylim=c(0,0.5), main="Contribution de chaque groupe de Family \n à la valeur totale de l'entropie ")
 abline(v=exp(-1),col="red")
-
-
 #l'indice d'entropie (=shannon) est la somme des termes/contributions -p*log(p)
 shannon_Family <- sum(p*Ip)
 
 
-
-
 #### Genus-----------
-
 Genus_groupes <- t_matrix_otu_species %>% 
   select(c("BG-I-D0-CTL" ,35))  %>%   #séléctionne la colonne=l'individu, et la colonne de regroupement 
   rename(c(Individu="BG-I-D0-CTL",Groupe=Genus)) %>% 
   group_by(Groupe) %>% 
   summarize(effectif_moyen=sum(Individu))
 
-
 vect_otu <- ceiling(as.data.frame(Genus_groupes)$effectif_moyen)
 names(vect_otu) <- as.data.frame(Genus_groupes)$Groupe
 vect_otu <- vect_otu[vect_otu!=0]
 
-
 #vecteur des probabilités:
 p <- vect_otu/sum(vect_otu)
-
-#---Fct D'information I(p)---------------
-# I(p)=-log(p) est la fonction d'information pour l'entropie/shannon :
-# un OTU apparu peu de fois est associé à une information importante, Ip fct décroissante de p
+#Fct D'information I(p)
 Ip=-log(p)
-# on représente Ip en fonction de p:
-plot(x=p,y=Ip, main="Fonction d'information",xlim=c(0,1),ylim=c(0,10))
-#Beaucoup de Proba faibles donc associées à beaucoup d'informations
-
-
-#----Qt d'information H(p)-----------------
-# on représente les contributions (absolues) de chaque bactérie 
-# à la valeur totale de l'entropie
+#Qt d'information H(p)
 contrib<-p*Ip
 plot(x=p,y=contrib,xlim=c(0,0.55),ylim=c(0,0.5), main="Contribution de chaque groupe de Genus \n à la valeur totale de l'entropie")
 abline(v=exp(-1),col="red")
-
-
 #l'indice d'entropie (=shannon) est la somme des termes/contributions -p*log(p)
 shannon_Genus <- sum(p*Ip)
 
 
-
-#### Species-----------
-
-Species_groupes <- t_matrix_otu_species %>% 
-  select(c("BG-I-D0-CTL" ,36))  %>%   #séléctionne la colonne=l'individu, et la colonne de regroupement 
-  rename(c(Individu="BG-I-D0-CTL",Groupe=Species)) %>% 
-  group_by(Groupe) %>% 
-  summarize(effectif_moyen=sum(Individu))
-
-
-vect_otu <- ceiling(as.data.frame(Species_groupes)$effectif_moyen)
-names(vect_otu) <- as.data.frame(Species_groupes)$Groupe
-vect_otu <- vect_otu[vect_otu!=0]
-
-#vecteur des probabilités:
-p <- vect_otu/sum(vect_otu)
-
-#---Fct D'information I(p)---------------
-# I(p)=-log(p) est la fonction d'information pour l'entropie/shannon :
-# un OTU apparu peu de fois est associé à une information importante, Ip fct décroissante de p
-Ip=-log(p)
-# on représente Ip en fonction de p:
-plot(x=p,y=Ip, main="Fonction d'information",xlim=c(0,1),ylim=c(0,10))
-#Beaucoup de Proba faibles donc associées à beaucoup d'informations
-
-
-#----Qt d'information H(p)-----------------
-# on représente les contributions (absolues) de chaque bactérie 
-# à la valeur totale de l'entropie
-contrib<-p*Ip
-plot(x=p,y=contrib,xlim=c(0,0.55),ylim=c(0,0.5), main="Contribution de chaque groupe à la valeur totale \n de l'entropie (2)")
-abline(v=exp(-1),col="red")
-
-
-#l'indice d'entropie (=shannon) est la somme des termes/contributions -p*log(p)
-shannon_Species <- sum(p*Ip)
-
-
-
 ########################----------
-barplot(c(shannon_Phylum,shannon_Order,shannon_Family,shannon_Genus,4.2342),names.arg=c("Phylum","Order","Family","Genus","Ensemble"),main="Evolution de l'indice de Shannon (pour individu avec Shannon max.) \n selon les regroupements (du plus au moins fin)")
+barplot(c(shannon_Phylum,shannon_Class,shannon_Order,shannon_Family,shannon_Genus,4.2342),names.arg=c("Phylum","Class","Order","Family","Genus","Ensemble"),main="Evolution de l'indice de Shannon (pour individu avec Shannon max.) \n selon les regroupements (du plus au moins fin)")
 
 
 
@@ -469,208 +387,103 @@ barplot(c(shannon_Phylum,shannon_Order,shannon_Family,shannon_Genus,4.2342),name
 
 
 
+###############################
+#### REGROUPEMENT : pour tous les indiv ###########
+##############################
+# on regroupe les OTU pour avoir moins de variables
+t_matrix_otu_species <- cbind(t(matrix_otu),species)
+t_matrix_otu_species <- tibble::rownames_to_column(t_matrix_otu_species,"OTU")
+t_matrix_otu_species <- tibble(t_matrix_otu_species)
+summary(t_matrix_otu_species)
 
 
+### Phylum
+res_phylum=levels(t_matrix_otu_species$Phylum)
+for(col in 2:29){
+  res=aggregate(t_matrix_otu_species[,col],t_matrix_otu_species[,"Phylum"],sum)
+  res_phylum=cbind(res_phylum,res[,2])
+}
+row.names(res_phylum)<-res_phylum[,1]
+res_phylum <- apply(as.data.frame(res_phylum[,2:29]),1,FUN=as.integer)
 
+shannon_tot_phylum <- diversity(res_phylum)
 
 
+### Class
+res_class=levels(t_matrix_otu_species$Class)
+for(col in 2:29){
+  res=aggregate(t_matrix_otu_species[,col],t_matrix_otu_species[,"Class"],sum)
+  res_class=cbind(res_class,res[,2])
+}
 
+row.names(res_class)<-res_class[,1]
+res_class <- apply(as.data.frame(res_class[,2:29]),1,FUN=as.integer)
 
+shannon_tot_class <- diversity(res_class)
 
 
-### version avec moyenne : FAUX
+### Order
+res_order=levels(t_matrix_otu_species$Order)
+for(col in 2:29){
+  res=aggregate(t_matrix_otu_species[,col],t_matrix_otu_species[,"Order"],sum)
+  res_order=cbind(res_order,res[,2])
+}
 
-#### Phylum-----------
+row.names(res_order)<-res_order[,1]
+res_order <- apply(as.data.frame(res_order[,2:29]),1,FUN=as.integer)
 
-Phylum_groupes <- t_matrix_otu_species %>% 
-  select(c("BG-I-D0-CTL" ,31))  %>%   #séléctionne la colonne=l'individu, et la colonne de regroupement (ici family)
-  rename(c(Individu="BG-I-D0-CTL",Groupe=Phylum)) %>% 
-  filter(Individu!=0) %>%   #on filtre les 0?
-  group_by(Groupe) %>% 
-  summarize(effectif_moyen=mean(Individu,na.rm=T))
+shannon_tot_order <- diversity(res_order)
 
+### Family
+res_family=levels(t_matrix_otu_species$Family)
+for(col in 2:29){
+  res=aggregate(t_matrix_otu_species[,col],t_matrix_otu_species[,"Family"],sum)
+  res_family=cbind(res_family,res[,2])
+}
 
-vect_otu <- ceiling(as.data.frame(Phylum_groupes)$effectif_moyen)
-names(vect_otu) <- as.data.frame(Phylum_groupes)$Groupe
+row.names(res_family)<-res_family[,1]
+res_family <- apply(as.data.frame(res_family[,2:29]),1,FUN=as.integer)
 
-#vecteur des probabilités:
-p <- vect_otu/sum(vect_otu)
+shannon_tot_family <- diversity(res_family)
 
-#---Fct D'information I(p)---------------
-# I(p)=-log(p) est la fonction d'information pour l'entropie/shannon :
-# un OTU apparu peu de fois est associé à une information importante, Ip fct décroissante de p
-Ip=-log(p)
-# on représente Ip en fonction de p:
-plot(x=p,y=Ip, main="Fonction d'information",xlim=c(0,1),ylim=c(0,10))
-#Beaucoup de Proba faibles donc associées à beaucoup d'informations
 
+### Genus
+res_genus=levels(t_matrix_otu_species$Genus)
+for(col in 2:29){
+  res=aggregate(t_matrix_otu_species[,col],t_matrix_otu_species[,"Genus"],sum)
+  res_genus=cbind(res_genus,res[,2])
+}
+row.names(res_genus)<-res_genus[,1]
+res_genus <- apply(as.data.frame(res_genus[,2:29]),1,FUN=as.integer)
 
-#----Qt d'information H(p)-----------------
-# on représente les contributions (absolues) de chaque bactérie 
-# à la valeur totale de l'entropie
-contrib<-p*Ip
-plot(x=p,y=contrib,xlim=c(0,0.55),ylim=c(0,0.5), main="Contribution de chaque groupe de Phylum \n à la valeur totale de l'entropie ")
-abline(v=exp(-1),col="red")
+shannon_tot_genus <- diversity(res_genus)
 
 
-#l'indice d'entropie (=shannon) est la somme des termes/contributions -p*log(p)
-shannon_Phylum <- sum(p*Ip)
+### On représente tous les Shannon
+plot(x=1:28,y=shannon_tot,main="Shannon selon regroupements pour les 28 individus",ylim=c(0,4.5))
+points(x=1:28,y=shannon_tot_phylum, col='red')
+points(x=1:28,y=shannon_tot_class, col='orange')
+points(x=1:28,y=shannon_tot_order, col='blue')
+points(x=1:28,y=shannon_tot_family, col='green3')
+points(x=1:28,y=shannon_tot_genus, col='purple')
+legend('topleft', legend=c("Ensemble","Genus","Family","Order","Class","Phylum"), fill = c('black', "purple", "green3","blue","orange","red"), title='Regroupements')
 
 
+#Corrélation----------------------
+   #Phylum et Order: R²=90%
+plot(shannon_tot_phylum,shannon_tot_order)
+summary(lm(shannon_tot_phylum~shannon_tot_order))
 
-#### Order-----------
+   #Phylum et Family: R²=29%
+plot(shannon_tot_phylum,shannon_tot_family)
+summary(lm(shannon_tot_phylum~shannon_tot_family))
 
-Order_groupes <- t_matrix_otu_species %>% 
-    select(c("BG-I-D0-CTL" ,33))  %>%   #séléctionne la colonne=l'individu, et la colonne de regroupement (ici order)
-    rename(c(Individu="BG-I-D0-CTL",Groupe=Order)) %>% 
-     filter(Individu!=0) %>%   #on filtre les 0?
-    group_by(Groupe) %>% 
-    summarize(effectif_moyen=mean(Individu,na.rm=T))
+   #Phylum et ensemble: R²=6.7%
+plot(shannon_tot_phylum,shannon_tot)
+summary(lm(shannon_tot_phylum~shannon_tot))
 
 
-vect_otu <- ceiling(as.data.frame(Order_groupes)$effectif_moyen)
-names(vect_otu) <- as.data.frame(Order_groupes)$Groupe
+  #Genus et ensemble: R²=67%
+plot(shannon_tot_genus,shannon_tot)
+summary(lm(shannon_tot_genus~shannon_tot))
 
-#vecteur des probabilités:
-p <- vect_otu/sum(vect_otu)
-
-#---Fct D'information I(p)---------------
-# I(p)=-log(p) est la fonction d'information pour l'entropie/shannon :
-# un OTU apparu peu de fois est associé à une information importante, Ip fct décroissante de p
-Ip=-log(p)
-# on représente Ip en fonction de p:
-plot(x=p,y=Ip, main="Fonction d'information",xlim=c(0,1),ylim=c(0,10))
-#Beaucoup de Proba faibles donc associées à beaucoup d'informations
-
-
-#----Qt d'information H(p)-----------------
-# on représente les contributions (absolues) de chaque bactérie 
-# à la valeur totale de l'entropie
-contrib<-p*Ip
-plot(x=p,y=contrib,xlim=c(0,0.55),ylim=c(0,0.5), main="Contribution de chaque groupe de Order \n à la valeur totale de l'entropie ")
-abline(v=exp(-1),col="red")
-
-
-#l'indice d'entropie (=shannon) est la somme des termes/contributions -p*log(p)
-shannon_Order <- sum(p*Ip)
-
-
-
-
-#### Family-----------
-
-Family_groupes <- t_matrix_otu_species %>% 
-  select(c("BG-I-D0-CTL" ,34))  %>%   #séléctionne la colonne=l'individu, et la colonne de regroupement (ici family)
-  rename(c(Individu="BG-I-D0-CTL",Groupe=Family)) %>% 
-  filter(Individu!=0) %>%   #on filtre les 0?
-  group_by(Groupe) %>% 
-  summarize(effectif_moyen=mean(Individu,na.rm=T))
-
-
-vect_otu <- ceiling(as.data.frame(Family_groupes)$effectif_moyen)
-names(vect_otu) <- as.data.frame(Family_groupes)$Groupe
-
-#vecteur des probabilités:
-p <- vect_otu/sum(vect_otu)
-
-#---Fct D'information I(p)---------------
-# I(p)=-log(p) est la fonction d'information pour l'entropie/shannon :
-# un OTU apparu peu de fois est associé à une information importante, Ip fct décroissante de p
-Ip=-log(p)
-# on représente Ip en fonction de p:
-plot(x=p,y=Ip, main="Fonction d'information",xlim=c(0,1),ylim=c(0,10))
-#Beaucoup de Proba faibles donc associées à beaucoup d'informations
-
-
-#----Qt d'information H(p)-----------------
-# on représente les contributions (absolues) de chaque bactérie 
-# à la valeur totale de l'entropie
-contrib<-p*Ip
-plot(x=p,y=contrib,xlim=c(0,0.55),ylim=c(0,0.5), main="Contribution de chaque groupe de Family \n à la valeur totale de l'entropie ")
-abline(v=exp(-1),col="red")
-
-
-#l'indice d'entropie (=shannon) est la somme des termes/contributions -p*log(p)
-shannon_Family <- sum(p*Ip)
-
-
-
-
-#### Genus-----------
-
-Genus_groupes <- t_matrix_otu_species %>% 
-  select(c("BG-I-D0-CTL" ,35))  %>%   #séléctionne la colonne=l'individu, et la colonne de regroupement 
-  rename(c(Individu="BG-I-D0-CTL",Groupe=Genus)) %>% 
-  filter(Individu!=0) %>%   #on filtre les 0?
-  group_by(Groupe) %>% 
-  summarize(effectif_moyen=mean(Individu,na.rm=T))
-
-
-vect_otu <- ceiling(as.data.frame(Genus_groupes)$effectif_moyen)
-names(vect_otu) <- as.data.frame(Genus_groupes)$Groupe
-
-#vecteur des probabilités:
-p <- vect_otu/sum(vect_otu)
-
-#---Fct D'information I(p)---------------
-# I(p)=-log(p) est la fonction d'information pour l'entropie/shannon :
-# un OTU apparu peu de fois est associé à une information importante, Ip fct décroissante de p
-Ip=-log(p)
-# on représente Ip en fonction de p:
-plot(x=p,y=Ip, main="Fonction d'information",xlim=c(0,1),ylim=c(0,10))
-#Beaucoup de Proba faibles donc associées à beaucoup d'informations
-
-
-#----Qt d'information H(p)-----------------
-# on représente les contributions (absolues) de chaque bactérie 
-# à la valeur totale de l'entropie
-contrib<-p*Ip
-plot(x=p,y=contrib,xlim=c(0,0.55),ylim=c(0,0.5), main="Contribution de chaque groupe de Family \n à la valeur totale de l'entropie")
-abline(v=exp(-1),col="red")
-
-
-#l'indice d'entropie (=shannon) est la somme des termes/contributions -p*log(p)
-shannon_Genus <- sum(p*Ip)
-
-
-
-#### Species-----------
-
-Species_groupes <- t_matrix_otu_species %>% 
-  select(c("BG-I-D0-CTL" ,36))  %>%   #séléctionne la colonne=l'individu, et la colonne de regroupement 
-  rename(c(Individu="BG-I-D0-CTL",Groupe=Species)) %>% 
-  filter(Individu!=0) %>%   #on filtre les 0?
-  group_by(Groupe) %>% 
-  summarize(effectif_moyen=mean(Individu,na.rm=T))
-
-
-vect_otu <- ceiling(as.data.frame(Species_groupes)$effectif_moyen)
-names(vect_otu) <- as.data.frame(Species_groupes)$Groupe
-
-#vecteur des probabilités:
-p <- vect_otu/sum(vect_otu)
-
-#---Fct D'information I(p)---------------
-# I(p)=-log(p) est la fonction d'information pour l'entropie/shannon :
-# un OTU apparu peu de fois est associé à une information importante, Ip fct décroissante de p
-Ip=-log(p)
-# on représente Ip en fonction de p:
-plot(x=p,y=Ip, main="Fonction d'information",xlim=c(0,1),ylim=c(0,10))
-#Beaucoup de Proba faibles donc associées à beaucoup d'informations
-
-
-#----Qt d'information H(p)-----------------
-# on représente les contributions (absolues) de chaque bactérie 
-# à la valeur totale de l'entropie
-contrib<-p*Ip
-plot(x=p,y=contrib,xlim=c(0,0.55),ylim=c(0,0.5), main="Contribution de chaque groupe à la valeur totale \n de l'entropie (2)")
-abline(v=exp(-1),col="red")
-
-
-#l'indice d'entropie (=shannon) est la somme des termes/contributions -p*log(p)
-shannon_Species <- sum(p*Ip)
-
-
-
-########################----------
-barplot(c(shannon_Phylum,shannon_Order,shannon_Family,shannon_Genus,4.2342),names.arg=c("Phylum","Order","Family","Genus","Ensemble"),main="Evolution de l'indice de Shannon (pour individu avec Shannon max.) \n selon les regroupements (du plus au moins fin)")
