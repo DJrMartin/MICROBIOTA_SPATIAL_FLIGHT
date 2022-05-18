@@ -58,18 +58,6 @@ while(cnt<100){
 boxplot(t(entropy_variability[,-1]), xlab="nb d'èspeces", ylab='Entropy',
         main = "Variabilité de l'entropy (300 tirages)")
 
-#####Visualisation de l'entropy par niveau de phylogénie.
-ENTROPY=NULL
-otu=NULL
-filtre=species[,6]
-for (j in as.character(unique(filtre))){
-  sum_reads=apply(OTU_normalised[, which(filtre==j)], 1,sum)
-  otu=cbind(otu,sum_reads)
-}
-
-ENTROPY=cbind(ENTROPY, diversity(matrix_otu, index='shannon'))
-colnames(ENTROPY)=colnames(species)[2:7]
-
 ###Visualisation de l'entropy intra-class.
 ENTROPY=NULL
 otu=NULL
@@ -91,3 +79,4 @@ ENTROPY=cbind(ENTROPY, experimental_condition$time)
 dotplot(ENTROPY[,1]~experimental_condition$time, col=as.numeric(experimental_condition$subject))
 new=cbind(ENTROPY[which(experimental_condition$time=="D0"),1], ENTROPY[which(experimental_condition$time=="D5"),1])
 ggparcoord(new, scale = "std", title = "Standard Scale")
+
