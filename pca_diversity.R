@@ -15,7 +15,7 @@ OTU_PCA$ind$coord
 
 ## Graphe des individus, coloré selon shannon
 shannon_tot <- diversity(matrix_otu, index='shannon')
-fviz_pca_ind(res_PCA_tot,col.ind = shannon_tot,label="None")
+fviz_pca_ind(res_PCA_tot,col.ind = shannon_tot,gradient.cols = c("yellow","red"),pointsize = 2,repel=T)
 
 
 
@@ -41,10 +41,10 @@ res_phylum <- apply(as.data.frame(res_phylum[,2:29]),1,FUN=as.integer)
 shannon_tot_phylum <- diversity(res_phylum,index='shannon')
 #PCA
 res_PCA_phylum <- PCA(res_phylum)
-fviz_pca_ind(OTU_PCA,col.ind = shannon_tot_phylum,label="None")
+fviz_pca_ind(res_PCA_phylum,col.ind = shannon_tot_phylum,gradient.cols = c("yellow","red"),pointsize = 2,repel=T)
 
 
-### Class
+## Class
 res_class=levels(t_matrix_otu_species$Class)
 for(col in 2:29){
   res=aggregate(t_matrix_otu_species[,col],t_matrix_otu_species[,"Class"],sum)
