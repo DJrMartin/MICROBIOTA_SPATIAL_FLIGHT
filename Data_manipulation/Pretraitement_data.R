@@ -5,7 +5,7 @@ library(ggplot2)
 ###Import#####################################################################
 User='David'
 if (User=='David'){
-  load('C:/User/David/Dropbox/EXOMIC 2022/DATA_PROJECT_1.RData')
+  load('~/Dropbox/Spatial_flight/RData_Microgravity_updata.RData')
 }
 if (User=='Marion'){
   load()
@@ -99,7 +99,7 @@ plot(apply(OTU_normalised, 1, sum), SIMPSON)
 dev.off()
 beta_total=NULL
 for (sample in unique(experimental_condition$subject)){
-  beta=vegdist(OTU_BRUTES[which(experimental_condition$subject==sample),], index='bray')
+  beta=vegdist(OTU_normalised[which(experimental_condition$subject==sample),], index='bray')
   beta_total=c(beta_total, beta)
 }
 time_factor=tibble::tibble('ID'=unique(experimental_condition$subject), 'B-diversity'=beta_total, 
@@ -108,7 +108,7 @@ plot(time_factor$`B-diversity`~time_factor$Condition,
      xlab='conditions', ylab='Bray-Curtis diversity') #p=0.37 (t.test)
 
 #Ordonate Disimilarity 
-beta_dist<-vegdist(OTU_CSS, index='bray')
+beta_dist<-vegdist(OTU_normalised, index='bray')
 mds <- metaMDS(beta_dist)
 mds_data <- as.data.frame(mds$points)
 mds_data$SampleID <- rownames(mds_data)
@@ -116,3 +116,49 @@ mds_data$Time=experimental_condition$time
 mds_data$Sujets=experimental_condition$subject
 ggplot(mds_data, aes(x = MDS1, y = MDS2, color=Sujets, shape=Time)) +
   geom_point()
+
+###Visualisation de l'entropy intra-class.
+ENTROPY=NULL
+otu=NULL
+filtre=species[,2]
+for (j in as.character(unique(filtre))){
+  reads=OTU_normalised[, which(filtre==j)]
+  ENTROPY=cbind(ENTROPY, diversity(reads, index='shannon'))
+}
+colnames(ENTROPY)=colnames(as.character(unique(filtre)))
+layout(matrix(c(1,2,3,4), nrow = 2))
+boxplot(ENTROPY[,1]~experimental_condition$time, xlab='Entropy', ylab='', main=as.character(unique(filtre))[1])
+boxplot(ENTROPY[,2]~experimental_condition$time, xlab='Entropy', ylab='', main=as.character(unique(filtre))[2])
+plot(ENTROPY[c(27,28),1]~experimental_condition$time[c(1:2)], xlab='Entropy', ylab='', main=as.character(unique(filtre))[3], pch=1)
+boxplot(ENTROPY[,4]~experimental_condition$time, xlab='Entropy', ylab='', main=as.character(unique(filtre))[4])
+
+rownames(ENTROPY)=rownames(matrix_otu)
+ENTROPY=cbind(ENTROPY, experimental_condition$time)
+
+dotplot(ENTROPY[,1]~experimental_condition$time, col=as.numeric(experimental_condition$subject))
+Bacterio=cbind(ENTROPY[which(experimental_condition$time=="D0"),1], ENTROPY[which(experimental_condition$time=="D5"),1])
+firmicutes=cbind(ENTROPY[which(experimental_condition$time=="D0"),3], ENTROPY[which(experimental_condition$time=="D5"),3])
+ylim=range(firmicutes)
+plot(firmicutes[1,], type ='l', ylim=ylim, main = 'E of Bacteriodetes',
+     ylab='Entropy', xlab='Time')
+for(i in 2:length(firmicutes[,1])){
+  lines(firmicutes[i,])
+}
+sort(firmicutes[,2]-firmicutes[,1])
+
+##Evolution of POWER max during exercice
+morphological_data=data.frame(morphological_data)
+VO2=cbind(as.numeric(morphological_data[which(morphological_data$Day=="D0"),3]), 
+                     as.numeric(morphological_data[which(morphological_data$Day=="D5"),3]))
+rownames(VO2)=morphological_data$ID[which(morphological_data$Day=="D0")]
+POWER=cbind(as.numeric(morphological_data[which(morphological_data$Day=="D0"),8]), 
+            as.numeric(morphological_data[which(morphological_data$Day=="D5"),8]))
+rownames(POWER)=morphological_data$ID[which(morphological_data$Day=="D0")]
+ylim=range(POWER)
+plot(POWER[1,], type ='l', ylim=ylim, main = 'POWER',
+     ylab='Entropy', xlab='Time')
+for(i in 2:length(POWER[,1])){
+  lines(POWER[i,])
+}
+sort(POWER[,2]-POWER[,1])
+corrplot(cor(apply(morphological_data, 2, as.numeric)))
