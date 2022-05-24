@@ -76,7 +76,7 @@ summary(lm(`B-diversity`~Condition, data=time_factor))
 ###Visualisation de l'entropy intra-class.
 ENTROPY=NULL
 otu=NULL
-filtre=species[,2]
+filtre=species[,4]
 for (j in as.character(unique(filtre))){
   reads=OTU_normalised[, which(filtre==j)]
   ENTROPY=cbind(ENTROPY, diversity(reads, index='shannon'))
@@ -125,5 +125,5 @@ mds_data$Time=experimental_condition$time
 mds_data$Sujets=experimental_condition$subject
 plot(mds_data[which(experimental_condition$time=="D5"),c(1,2)],col=color)
 
-plot(ENTROPY[which(experimental_condition$time=="D0"),3], delta)
+plot(firmicutes[,2]-firmicutes[,1], delta)
 summary(lm(ENTROPY[which(experimental_condition$time=="D0"),3]~ delta))
