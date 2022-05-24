@@ -5,6 +5,7 @@
 # - Essai Package Magma et distance Chi2
 # - PCA globale et PCA en regroupant par phylum
 # - Heatmap sur les indices alpha diversity
+# - bray curtis
 
 library(devtools)
 install_gitlab("arcgl/rmagma")
