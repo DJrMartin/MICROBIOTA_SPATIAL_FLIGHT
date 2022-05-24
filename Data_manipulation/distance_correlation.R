@@ -306,6 +306,17 @@ heatmap(indice_alpha_div, scale = "col")
 
 
 
+#########################
+### Bray curtis #########
+#########################
 
+bc <- function(i,j){
+  df=data.frame(i,j)
+  return(1-2*sum(apply(df, 1, min))/ sum(colSums(df)))
+}
+
+bray = outer(as.data.frame(OTU_TSS),as.data.frame(OTU_TSS),Vectorize(bc))
+
+vg_bray=vegdist(OTU_TSS)
 
 

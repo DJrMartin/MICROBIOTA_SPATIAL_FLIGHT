@@ -13,7 +13,7 @@ library(geiger)
 library(picante)
 library(stats)
 
-load('C:/Users/33638/Documents/stage/MICROBIOTA_SPATIAL_FLIGHT/DATA_PROJECT_1.RData')
+#load('C:/Users/33638/Documents/stage/MICROBIOTA_SPATIAL_FLIGHT/DATA_PROJECT_1.RData')
 
 ### Certains OTU ne sont observés pour aucun individu, on les supprime
 nb <- colSums(matrix_otu)
@@ -56,7 +56,7 @@ matrix_otu_norm_species_D5 <- tibble::rownames_to_column(matrix_otu_norm_species
 
 
 #########################################
-### stats générales sur D0 et D5  ########
+### stats générales sur D0 et D5  #######
 #########################################
 
 #OTU les plus fréquents : 
@@ -196,13 +196,13 @@ matrix_otu_gpe_species <- as.data.frame(merge(t(matrix_otu_gpe),species,by="row.
 
 # on va regarder la proportion pour chaque groupe des catégories de Phylum
 group1 <- matrix_otu_gpe_species[matrix_otu_gpe_species[,"gpe"]==1,]
-group1_prop <- mapply(FUN='/',df=group1[,2:29],vec=colSums(group1[,2:29]))
+group1_prop <- apply(group1[,c(2:29)], 2,function(x) as.numeric(x/sum(x)))
 group1 <- data.frame(group1$Row.names,group1_prop*100,group1[,30:ncol(group1)])
 group2 <- matrix_otu_gpe_species[matrix_otu_gpe_species[,"gpe"]==2,]
-group2_prop <- mapply(FUN='/',df=group2[,2:29],vec=colSums(group2[,2:29]))
+group2_prop <- apply(group2[,c(2:29)], 2,function(x) as.numeric(x/sum(x)))
 group2 <- data.frame(group2$Row.names,group2_prop*100,group2[,30:ncol(group2)])
 group3 <- matrix_otu_gpe_species[matrix_otu_gpe_species[,"gpe"]==3,]
-group3_prop <- mapply(FUN='/',df=group3[,2:29],vec=colSums(group3[,2:29]))
+group3_prop <- apply(group3[,c(2:29)], 2,function(x) as.numeric(x/sum(x)))
 group3 <- data.frame(group3$Row.names,group3_prop*100,group3[,30:ncol(group3)])
 
 group1_phylum=levels(group1$Phylum)
@@ -253,9 +253,88 @@ ggplot(analyse_phylum_gpe) + aes(x=Groupe, y=X28, fill=Phylum)+
        x="Groupes issus CAH", y = "% d'OTU")+
   theme(plot.title = element_text(hjust = 0.5))
 
+##calcul de la distance entre ls individu avec chaque groupe de bacteries.
+beta_dist1<-as.matrix(vegdist(t(group1_prop), index='jaccard'))
+beta_dist2<-as.matrix(vegdist(t(group2_prop), index='jaccard'))
+beta_dist3<-as.matrix(vegdist(t(group3_prop), index='jaccard'))
 
+plot(hclust(vegdist(t(group1_prop), index='jaccard'), method='ward.D'))
+plot(hclust(vegdist(t(group2_prop), index='jaccard'), method='ward.D'))
+plot(hclust(vegdist(t(group3_prop), index='jaccard'), method='ward.D'))
 
+colnames(beta_dist1)=colnames(beta_dist2)=colnames(beta_dist3)=substr(rownames(beta_dist1), 4,4)
+rownames(beta_dist1)=rownames(beta_dist2)=rownames(beta_dist3)=as.factor(substr(rownames(beta_dist1), 6,7))
+layout(matrix(c(1,2), nrow = T))
+#time factor
+T_Factor1=T_Factor2=T_Factor3=NULL
+for (i in unique(colnames(beta_dist1))){
+  T_Factor1=c(T_Factor1,
+             sum(beta_dist1[which(colnames(beta_dist1)==i),
+                           which(colnames(beta_dist1)==i)])/2)
+  T_Factor2=c(T_Factor2,
+             sum(beta_dist2[which(colnames(beta_dist2)==i),
+                           which(colnames(beta_dist2)==i)])/2)
+  T_Factor3=c(T_Factor3,
+             sum(beta_dist3[which(colnames(beta_dist3)==i),
+                           which(colnames(beta_dist3)==i)])/2)
+  
+}
+boxplot(tibble('Group 1'=T_Factor1,'Group 2'=T_Factor2,'Group 3'=T_Factor3), 
+        main='Jaccard mean distance between D0/D5 in OTU groups', 
+        col=c('gold', 'tomato','green3'), cex.main=0.5)
 
+#Inter-difference
+T_Factor1=T_Factor2=T_Factor3=NULL
+for (i in unique(colnames(beta_dist1))){
+  T_Factor1=c(T_Factor1,
+              mean(beta_dist1[which(rownames(beta_dist1)=="D0"),
+                              which(colnames(beta_dist1)==i)][,1]))
+  T_Factor2=c(T_Factor2,
+              mean(beta_dist2[which(rownames(beta_dist2)=="D0"),
+                              which(colnames(beta_dist2)==i)][,1]))
+  T_Factor3=c(T_Factor3,
+              mean(beta_dist3[which(rownames(beta_dist3)=="D0"),
+                              which(colnames(beta_dist3)==i)][,1]))
+}
+boxplot(tibble('Group 1'=T_Factor1,'Group 2'=T_Factor2,'Group 3'=T_Factor3), 
+        main='Jaccard mean distance between individu in OTU groups', 
+        col=c('gold', 'tomato','green3'), cex.main=0.5)
+
+##ON VA MAINTENANT SE CONCENTRER SUR LE GROUPE 2 ET LE GROUPE 1
+
+morphological_data=data.frame(morphological_data)
+experimental_condition$IDD=as.character(paste(experimental_condition$subject, experimental_condition$time))
+morphological_data$IDD=as.character(paste(morphological_data$ID, morphological_data$Day))
+data_exploration=merge(morphological_data,experimental_condition,by='IDD', x.all=F)
+
+weight=cbind(as.numeric(data_exploration[which(data_exploration$Day=="D0"),10]), 
+             as.numeric(data_exploration[which(data_exploration$Day=="D5"),10]))
+
+delta=(weight[,1]-weight[,2])
+#PCA
+otu_group2=data.frame(t(group2_prop)[which(experimental_condition$time=='D0'),])
+otu_group1=data.frame(t(group1_prop)[which(experimental_condition$time=='D0'),])
+res.pca=FactoMineR::PCA(otu_group1)
+mds.data=res.pca$ind$coord[,c(1,2)]
+plot(mds.data)
+
+color=delta
+color[which(delta<=2.5)]=brewer.pal(6, 'YlOrRd')[6]
+color[which(delta<2.1)]=brewer.pal(6, 'YlOrRd')[5]
+color[which(delta<1.6)]=brewer.pal(6, 'YlOrRd')[4]
+color[which(delta<1.1)]=brewer.pal(6, 'YlOrRd')[3]
+color[which(delta<0.6)]=brewer.pal(6, 'YlOrRd')[2]
+
+plot(mds.data,col=color)
+plot(
+  delta, 
+  as.numeric(diversity(otu_group1,
+                       index=c('simpson')))
+)
+library(randomForest)
+otu_group1$class= as.numeric(delta)
+model=randomForest::randomForest(class~., otu_group1, mtry=160, ntree=2000)
+varImpPlot(model)
 
 
 

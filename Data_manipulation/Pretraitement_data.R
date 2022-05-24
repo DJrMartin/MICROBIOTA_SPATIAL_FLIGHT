@@ -105,7 +105,7 @@ weight=cbind(as.numeric(data_exploration[which(data_exploration$Day=="D0"),10]),
 
 delta=(weight[,1]-weight[,2])
 
-res.pca=FactoMineR::PCA(OTU_normalised[which(experimental_condition$time=='D5'),])
+res.pca=FactoMineR::PCA(OTU_normalised[which(experimental_condition$time=='D0'),])
 mds.data=res.pca$ind$coord[,c(1,2)]
 plot(mds.data)
 
