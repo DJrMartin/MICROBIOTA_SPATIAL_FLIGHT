@@ -1,3 +1,11 @@
+# Code pour:
+# - matrices distances Pearson et Jaccard
+# - Dendrogramme => 3 groupes liés à co-occurence OTU
+# - Diversité PD sur treefile et dendrogramme
+# - Essai Package Magma et distance Chi2
+# - PCA globale et PCA en regroupant par phylum
+# - Heatmap sur les indices alpha diversity
+
 library(devtools)
 install_gitlab("arcgl/rmagma")
 library(rMAGMA)
@@ -5,6 +13,8 @@ library(tidyverse)
 library(corrplot)
 library(picante)
 library(phylogram)
+library(FactoMineR)
+library(factoextra)
 
 load('C:/Users/33638/Documents/stage/MICROBIOTA_SPATIAL_FLIGHT/DATA_PROJECT_1.RData')
 
@@ -144,7 +154,7 @@ ggplot(analyse_phylum_gpe) + aes(x=X30, y=X29, fill=X1)+
 
 
 #pour un individu (changer y entre X1.1 et X28)
-ggplot(analyse_phylum_gpe) + aes(x=X30, y=X20, fill=X1)+
+ggplot(analyse_phylum_gpe) + aes(x=X30, y=X3, fill=X1)+
   geom_bar(stat="identity", position=position_dodge())+
   labs(title="Répartition des bactéries dans les groupes \n pour un individu", 
        x="Groupes issus CAH", y = "Nombre d'OTU")
@@ -154,6 +164,12 @@ ggplot(analyse_phylum_gpe) + aes(x=X30, y=X20, fill=X1)+
 ###########################
 ######## Diversité PD######
 ###########################
+plot(treefile)
+plot.phylo(treefile)
+plotTree(treefile,type="fan",fsize=0.7,lwd=1,
+         ftype="i")
+
+
 # On deux arbres :
  # - l'arbre phylogénétique treefile : représente la parenté entre OTU
  # - le dendrogramme qui peut etre vu comme un arbre représentant la co-occurence
@@ -179,11 +195,10 @@ plot(mpd,mpd_dend)
 
 
 
-
+    
 
 
 #############################################
-
 ## matrice des distances du chi-2
 library(ade4)
 
@@ -200,18 +215,94 @@ dist_chi2 <- as.matrix(dist.dudi(afc))
 
 
 ### Magma #############
-otu_table_0 <- matrix_otu
-prevalence  <- colMeans(otu_table_0>0)
-sequencing_depth <- rowSums(otu_table_0)
+#otu_table_0 <- matrix_otu
+#prevalence  <- colMeans(otu_table_0>0)
+#sequencing_depth <- rowSums(otu_table_0)
 
-icol <- prevalence >0.25
-irow <- sequencing_depth >500
+#icol <- prevalence >0.25
+#irow <- sequencing_depth >500
 
-otu_table <- otu_table_0[irow,icol]
+#otu_table <- otu_table_0[irow,icol]
 
-magma_Stool <- magma(data = otu_table)
-plot(magma_Stool)
+#magma_Stool <- magma(data = otu_table)
+#plot(magma_Stool)
 
+
+
+
+#######################################
+######  PCA ###########################
+#######################################
+
+res_PCA_tot <- PCA(OTU_TSS, scale.unit = T)
+# le premier plan factoriel contient 21% des informations 
+OTU_PCA$eig
+OTU_PCA$var$coord
+OTU_PCA$ind$coord
+
+## Graphe des individus, coloré selon shannon
+shannon_tot <- vegan::diversity(matrix_otu, index='shannon')
+fviz_pca_ind(res_PCA_tot,col.ind = shannon_tot,gradient.cols = c("yellow","red"),pointsize = 2,repel=T)
+
+
+
+#### REGROUPEMENT  ############
+# on regroupe les OTU pour avoir moins de variables
+t_matrix_otu_species <- merge(t(OTU_TSS),species,by="row.names")
+t_matrix_otu_species <- tibble::rownames_to_column(t_matrix_otu_species,"OTU")
+t_matrix_otu_species <- tibble(t_matrix_otu_species)
+summary(t_matrix_otu_species)
+
+
+### Phylum
+res_phylum=levels(t_matrix_otu_species$Phylum)
+for(col in 3:30){
+  res=aggregate(t_matrix_otu_species[,col],t_matrix_otu_species[,"Phylum"],sum)
+  res_phylum=cbind(res_phylum,res[,2])
+}
+row.names(res_phylum)<-res_phylum[,1]
+res_phylum <- apply(as.data.frame(res_phylum[,2:29]),1,FUN=as.double)
+
+#PCA
+res_PCA_phylum <- PCA(res_phylum)
+
+
+#on veut rajouter le shannon sur graphe individu
+t_matrix_otu_species_brutes <- merge(t(matrix_otu),species,by="row.names")
+t_matrix_otu_species_brutes <- tibble::rownames_to_column(t_matrix_otu_species_brutes,"OTU")
+t_matrix_otu_species_brutes <- tibble(t_matrix_otu_species_brutes)
+
+res_Phylum_brut=levels(t_matrix_otu_species_brutes$Phylum)
+for(col in 3:30){
+  res=aggregate(t_matrix_otu_species_brutes[,col],t_matrix_otu_species_brutes[,"Phylum"],sum)
+  res_Phylum_brut=cbind(res_Phylum_brut,res[,2])
+}
+row.names(res_Phylum_brut)<-res_Phylum_brut[,1]
+res_Phylum_brut <- apply(as.data.frame(res_Phylum_brut[,2:29]),1,FUN=as.integer)
+
+shannon_tot_phylum <- vegan::diversity(res_Phylum_brut,index='shannon')
+
+#le graphe des individus
+fviz_pca_ind(res_PCA_phylum,col.ind = shannon_tot_phylum,gradient.cols = c("yellow","red"),pointsize = 2,repel=T)
+
+
+
+###########################
+###### heatmap  ##########
+##########################
+richness <-apply(matrix_otu, 1, function(x) length(which(x>=1)))
+#La richesse varie entre 209 et 316 selon les individus, avec une moyenne de 273 OTU différents détectés
+range(richness)
+
+#### Chao1
+chao1<-apply(matrix_otu, 1, function(x) chao1(x, taxa.row = T))
+
+simpson <- vegan::diversity(matrix_otu, index='simpson')
+shannon <-vegan::diversity(matrix_otu, index='shannon')
+
+indice_alpha_div <- as.matrix(data.frame(richness,chao1,simpson,shannon,pd_treefile$PD,pd_dend$PD,mpd,mpd_dend))
+
+heatmap(indice_alpha_div, scale = "col")
 
 
 
