@@ -7,9 +7,6 @@ User='David'
 if (User=='David'){
   load('~/Dropbox/Spatial_flight/RData_Microgravity_updata.RData')
 }
-if (User=='Marion'){
-  load()
-}
 rm(User)
 
 ###Courbe de rarefaction######################################################
@@ -26,13 +23,6 @@ OTU_CSS<-NORMALISATION_MICROBIOTA(matrix_otu, approches = 'CSS')
 OTU_TSS<-NORMALISATION_MICROBIOTA(matrix_otu, approches = 'TSS')
 OTU_BRUTES<-NORMALISATION_MICROBIOTA(matrix_otu, approches = 'BRUTES')
 OTU_CLR<-NORMALISATION_MICROBIOTA(matrix_otu, approches = 'CLR')
-
-layout(matrix(c(1,2,
-                3,4), nrow=2))
-hist(as.numeric(OTU_CSS[2,]), breaks =60, main="CSS", xlab='Distribution OTU')
-hist(as.numeric(OTU_TSS[2,]),  breaks =60, main ="TSS", xlab='Distribution OTU')
-hist(as.numeric(OTU_BRUTES[2,]),  breaks =60, main ="BRUTES", xlab='Distribution OTU')
-hist(as.numeric(OTU_CLR[2,]),  breaks =60, main ="CLR", xlab='Distribution OTU')
 
 OTU_normalised=OTU_TSS
 ###Visualisation en fonction des phylums######################################
@@ -66,37 +56,12 @@ legend(legend=c(as.character(unique(species$Class))),
        cex=0.6, bty='n', lty=0)
 
 ###Diversity###################################################################
-#richness on data BRUT
-ylim=range(apply(OTU_normalised, 1, function(x) length(which(x>=1))), apply(matrix_otu, 1, function(x) length(which(x>=10))))
-plot(apply(OTU_normalised, 1, function(x) length(which(x>=1))), ylim=ylim, ylab='Richness', xlab='ind')
-points(apply(OTU_normalised, 1, function(x) length(which(x>=5))), col='red')
-points(apply(OTU_normalised, 1, function(x) length(which(x>=10))), col='green3')
-legend('topleft', legend=c(1,5,10), fill = c('black', "red", "green3"), title='FILTRES', horiz = T)
 
-RICHNESS<-apply(OTU_normalised, 1, function(x) length(which(x>=1)))
-#Est-ce que l'on filtre les OTUs peu exprimés ? et avec quelle normalisation ?
-
-###Alpha
-#Chao1 on data BRUT, estimation of richness (improve this metrics ??)
-#Chao, A. 1984. Non-parametric estimation of the number of classes in a population. 
-#Scandinavian Journal of Statistics 11: 265-270
-plot(apply(OTU_normalised, 1, function(x) length(which(x>=3)))
-     ~apply(OTU_normalised, 1, function(x) sum(x)))
-#On peut se poser la question de savoir s'il est pertinent d'utiliser Chao1 dans notre cas
-#On remarque bien que la profondeur de séquençage n'influe pas sur la présence/absence
-#de certaines espèces (au contraire)
-CHAO1<-apply(OTU_normalised, 1, function(x) chao1(x, taxa.row = T))
-#Simpson
-SIMPSON=diversity(OTU_normalised, index='simpson')
-#Shannon
-SHANNON<-diversity(OTU_normalised, index='shannon')
-plot(apply(OTU_normalised, 1, sum), SIMPSON)
+shannon=diversity(OTU_normalised[which(experimental_condition$time=="D0"), ], index='simpson')
 
 #Time factor
-
 ###Beta
 #Disimilarity between time factor
-dev.off()
 beta_total=NULL
 for (sample in unique(experimental_condition$subject)){
   beta=vegdist(OTU_normalised[which(experimental_condition$subject==sample),], index='bray')
@@ -106,16 +71,7 @@ time_factor=tibble::tibble('ID'=unique(experimental_condition$subject), 'B-diver
                'Condition'=as.factor(substr(experimental_condition$Sample, 9,12)[-c(2,4,6,8,10,12,14,16,18,20,22,24,26,28)]))
 plot(time_factor$`B-diversity`~time_factor$Condition,
      xlab='conditions', ylab='Bray-Curtis diversity') #p=0.37 (t.test)
-
-#Ordonate Disimilarity 
-beta_dist<-vegdist(OTU_normalised, index='bray')
-mds <- metaMDS(beta_dist)
-mds_data <- as.data.frame(mds$points)
-mds_data$SampleID <- rownames(mds_data)
-mds_data$Time=experimental_condition$time
-mds_data$Sujets=experimental_condition$subject
-ggplot(mds_data, aes(x = MDS1, y = MDS2, color=Sujets, shape=Time)) +
-  geom_point()
+summary(lm(`B-diversity`~Condition, data=time_factor))
 
 ###Visualisation de l'entropy intra-class.
 ENTROPY=NULL
@@ -126,16 +82,9 @@ for (j in as.character(unique(filtre))){
   ENTROPY=cbind(ENTROPY, diversity(reads, index='shannon'))
 }
 colnames(ENTROPY)=colnames(as.character(unique(filtre)))
-layout(matrix(c(1,2,3,4), nrow = 2))
-boxplot(ENTROPY[,1]~experimental_condition$time, xlab='Entropy', ylab='', main=as.character(unique(filtre))[1])
-boxplot(ENTROPY[,2]~experimental_condition$time, xlab='Entropy', ylab='', main=as.character(unique(filtre))[2])
-plot(ENTROPY[c(27,28),1]~experimental_condition$time[c(1:2)], xlab='Entropy', ylab='', main=as.character(unique(filtre))[3], pch=1)
-boxplot(ENTROPY[,4]~experimental_condition$time, xlab='Entropy', ylab='', main=as.character(unique(filtre))[4])
-
 rownames(ENTROPY)=rownames(matrix_otu)
 ENTROPY=cbind(ENTROPY, experimental_condition$time)
 
-dotplot(ENTROPY[,1]~experimental_condition$time, col=as.numeric(experimental_condition$subject))
 Bacterio=cbind(ENTROPY[which(experimental_condition$time=="D0"),1], ENTROPY[which(experimental_condition$time=="D5"),1])
 firmicutes=cbind(ENTROPY[which(experimental_condition$time=="D0"),3], ENTROPY[which(experimental_condition$time=="D5"),3])
 ylim=range(firmicutes)
@@ -144,21 +93,37 @@ plot(firmicutes[1,], type ='l', ylim=ylim, main = 'E of Bacteriodetes',
 for(i in 2:length(firmicutes[,1])){
   lines(firmicutes[i,])
 }
-sort(firmicutes[,2]-firmicutes[,1])
 
 ##Evolution of POWER max during exercice
 morphological_data=data.frame(morphological_data)
-VO2=cbind(as.numeric(morphological_data[which(morphological_data$Day=="D0"),3]), 
-                     as.numeric(morphological_data[which(morphological_data$Day=="D5"),3]))
-rownames(VO2)=morphological_data$ID[which(morphological_data$Day=="D0")]
-POWER=cbind(as.numeric(morphological_data[which(morphological_data$Day=="D0"),8]), 
-            as.numeric(morphological_data[which(morphological_data$Day=="D5"),8]))
-rownames(POWER)=morphological_data$ID[which(morphological_data$Day=="D0")]
-ylim=range(POWER)
-plot(POWER[1,], type ='l', ylim=ylim, main = 'POWER',
-     ylab='Entropy', xlab='Time')
-for(i in 2:length(POWER[,1])){
-  lines(POWER[i,])
-}
-sort(POWER[,2]-POWER[,1])
-corrplot(cor(apply(morphological_data, 2, as.numeric)))
+experimental_condition$IDD=as.character(paste(experimental_condition$subject, experimental_condition$time))
+morphological_data$IDD=as.character(paste(morphological_data$ID, morphological_data$Day))
+data_exploration=merge(morphological_data,experimental_condition,by='IDD', x.all=F)
+
+weight=cbind(as.numeric(data_exploration[which(data_exploration$Day=="D0"),10]), 
+             as.numeric(data_exploration[which(data_exploration$Day=="D5"),10]))
+
+delta=(weight[,1]-weight[,2])
+
+res.pca=FactoMineR::PCA(OTU_normalised[which(experimental_condition$time=='D5'),])
+mds.data=res.pca$ind$coord[,c(1,2)]
+plot(mds.data)
+
+color=delta
+color[which(delta<=2.5)]=brewer.pal(6, 'YlOrRd')[6]
+color[which(delta<2.1)]=brewer.pal(6, 'YlOrRd')[5]
+color[which(delta<1.6)]=brewer.pal(6, 'YlOrRd')[4]
+color[which(delta<1.1)]=brewer.pal(6, 'YlOrRd')[3]
+color[which(delta<0.6)]=brewer.pal(6, 'YlOrRd')[2]
+
+plot(mds.data,col=color)
+beta_dist<-vegdist(OTU_normalised, index='jaccard')
+mds <- metaMDS(beta_dist)
+mds_data <- as.data.frame(mds$points)
+mds_data$SampleID <- rownames(mds_data)
+mds_data$Time=experimental_condition$time
+mds_data$Sujets=experimental_condition$subject
+plot(mds_data[which(experimental_condition$time=="D5"),c(1,2)],col=color)
+
+plot(ENTROPY[which(experimental_condition$time=="D0"),3], delta)
+summary(lm(ENTROPY[which(experimental_condition$time=="D0"),3]~ delta))
