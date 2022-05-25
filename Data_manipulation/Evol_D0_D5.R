@@ -319,6 +319,7 @@ delta_W=(WEIGHT[,1]-WEIGHT[,2])
 delta_V=(V02[,1]-V02[,2])
 delta_P=(POWER[,1]-POWER[,2])
 cor(cbind(delta_P, delta_V, delta_W))
+
 #PCA
 otu_group2=data.frame(t(group2_prop)[which(experimental_condition$time=='D0'),])
 otu_group1=data.frame(t(group1_prop)[which(experimental_condition$time=='D0'),])
@@ -327,17 +328,19 @@ mds.data=res.pca$ind$coord[,c(1,2)]
 plot(mds.data)
 
 library(randomForest)
-otu_group2$class= as.numeric(delta_V)
-model=randomForest::randomForest(class~., otu_group2, mtry=160, ntree=2000)
+otu_group1$class= as.numeric(delta_P)
+model=randomForest::randomForest(class~., otu_group1, mtry=100, ntree=2000)
 varImpPlot(model)
-plot(delta, otu_group2$X90)
-plot(delta, otu_group1$X110)
-plot(delta, otu_group1$X143)
-otu_group1_D5=data.frame(t(group2_prop)[which(experimental_condition$time=='D5'),])
-plot(delta, otu_group1_D5$X241)
-plot(delta, otu_group1_D5$X110)
-plot(delta, otu_group1_D5$X143)
-boxplot(otu_group1_D5$X110, otu_group1$X110)
-species[90,]
+model
 
+plot(delta_P, otu_group2$X247)
+group2[247, c(32:37)]
 
+plot(delta_P, otu_group1$X35)
+group1[35, c(32:37)]
+
+plot(delta_P, otu_group1$X107)
+group1[107, c(32:37)]
+
+otu_group1_D5=data.frame(t(group1_prop)[which(experimental_condition$time=='D5'),])
+plot(delta_P, otu_group1_D5$X35)
