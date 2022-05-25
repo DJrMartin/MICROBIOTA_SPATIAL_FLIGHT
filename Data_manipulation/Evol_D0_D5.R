@@ -12,6 +12,7 @@ library(phytools)
 library(geiger)
 library(picante)
 library(stats)
+library(RColorBrewer)
 
 #load('C:/Users/33638/Documents/stage/MICROBIOTA_SPATIAL_FLIGHT/DATA_PROJECT_1.RData')
 
@@ -307,10 +308,17 @@ experimental_condition$IDD=as.character(paste(experimental_condition$subject, ex
 morphological_data$IDD=as.character(paste(morphological_data$ID, morphological_data$Day))
 data_exploration=merge(morphological_data,experimental_condition,by='IDD', x.all=F)
 
-weight=cbind(as.numeric(data_exploration[which(data_exploration$Day=="D0"),10]), 
-             as.numeric(data_exploration[which(data_exploration$Day=="D5"),10]))
+V02=cbind(as.numeric(data_exploration[which(data_exploration$Day=="D0"),4]), 
+             as.numeric(data_exploration[which(data_exploration$Day=="D5"),4]))
+POWER=cbind(as.numeric(data_exploration[which(data_exploration$Day=="D0"),6]), 
+          as.numeric(data_exploration[which(data_exploration$Day=="D5"),6]))
+WEIGHT=cbind(as.numeric(data_exploration[which(data_exploration$Day=="D0"),10]), 
+          as.numeric(data_exploration[which(data_exploration$Day=="D5"),10]))
 
-delta=(weight[,1]-weight[,2])
+delta_W=(WEIGHT[,1]-WEIGHT[,2])
+delta_V=(V02[,1]-V02[,2])
+delta_P=(POWER[,1]-POWER[,2])
+cor(cbind(delta_P, delta_V, delta_W))
 #PCA
 otu_group2=data.frame(t(group2_prop)[which(experimental_condition$time=='D0'),])
 otu_group1=data.frame(t(group1_prop)[which(experimental_condition$time=='D0'),])
@@ -318,29 +326,18 @@ res.pca=FactoMineR::PCA(otu_group1)
 mds.data=res.pca$ind$coord[,c(1,2)]
 plot(mds.data)
 
-color=delta
-color[which(delta<=2.5)]=brewer.pal(6, 'YlOrRd')[6]
-color[which(delta<2.1)]=brewer.pal(6, 'YlOrRd')[5]
-color[which(delta<1.6)]=brewer.pal(6, 'YlOrRd')[4]
-color[which(delta<1.1)]=brewer.pal(6, 'YlOrRd')[3]
-color[which(delta<0.6)]=brewer.pal(6, 'YlOrRd')[2]
-
-plot(mds.data,col=color)
-plot(
-  delta, 
-  as.numeric(diversity(otu_group1,
-                       index=c('simpson')))
-)
 library(randomForest)
-otu_group1$class= as.numeric(delta)
-model=randomForest::randomForest(class~., otu_group1, mtry=160, ntree=2000)
+otu_group2$class= as.numeric(delta_V)
+model=randomForest::randomForest(class~., otu_group2, mtry=160, ntree=2000)
 varImpPlot(model)
-
-
-
-
-
-
-
+plot(delta, otu_group2$X90)
+plot(delta, otu_group1$X110)
+plot(delta, otu_group1$X143)
+otu_group1_D5=data.frame(t(group2_prop)[which(experimental_condition$time=='D5'),])
+plot(delta, otu_group1_D5$X241)
+plot(delta, otu_group1_D5$X110)
+plot(delta, otu_group1_D5$X143)
+boxplot(otu_group1_D5$X110, otu_group1$X110)
+species[90,]
 
 
