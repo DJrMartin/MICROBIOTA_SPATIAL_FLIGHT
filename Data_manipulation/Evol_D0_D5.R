@@ -1,4 +1,4 @@
-# 1) RICHESS
+# 1) RICHNESS
 # 2) SIMPSON
 # 3) SHANNON
 # 4) PD
@@ -116,6 +116,40 @@ boxplot(data.frame(D0=mpd_D0,D5=mpd_D5),main="Boxplot de Weighted PD")
 #p value ns.
 
 #### 6) RANK ABUNDANCE CURVE
+max_otu <- apply(matrix_otu,1,max)
+max_otu_matrice <- matrix(rep(max_otu,617),nrow = 28)
+matrix_otu_abund <- matrix_otu/max_otu_matrice
+
+# comparaison D0 D5
+indiv1 <- sort(matrix_otu_abund[1,matrix_otu_abund[1,]!=0],decreasing = T)
+indiv2 <- sort(matrix_otu_abund[2,matrix_otu_abund[2,]!=0],decreasing = T)
+plot(indiv1,type="l",main="Rank abundance curve à D0 et D5 pour indiv A",ylab="Proportion relative OTU")
+points(sort(indiv2,decreasing = T),type="l",col="red")
+legend(legend=c("D0","D5"), 
+       fill=c("black","red"), 'topright',lty=0)
+
+# Comparaisons 3 individus
+plot(log(sort(matrix_otu_abund[1,],decreasing = T)),type="l",main="Rank abundance curve pour indiv A,B et C (à D0)",ylab="Proportion relative OTU",xlim=c(0,200))
+points(log(sort(matrix_otu_abund[3,],decreasing = T)),type="l",col="red")
+points(log(sort(matrix_otu_abund[5,],decreasing = T)),type="l",col="green")
+legend(legend=c("A","B","C"), 
+       fill=c("black","red","green"), 'topright',lty=0)
+
+# On passe au log
+plot(log(sort(matrix_otu_abund[1,matrix_otu_abund[1,]!=0],decreasing = T)),type="l")
+
+# nouvel indice de diversité : coeff pente estimée du log de la courbe
+pentes=c()
+for(i in 1:28){
+  y=log(sort(matrix_otu_abund[i,matrix_otu_abund[i,]!=0],decreasing = T))
+  x=1:length(y)
+  res <- lm(y~x)
+  pentes <- c(pentes,res$coefficients[2])
+}
+plot(pentes)  #indice pour les 28 individus
+
+
+
 
 
 #### 7) DIVERSITY OF CO-OCCURENCE
