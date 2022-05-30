@@ -119,6 +119,30 @@ points(x=1:14,y=shannon_D5,col="red")
 legend(legend=c("D0","D5"), 
        fill=c("black","red"), 'topleft',lty=0)
 
+plot(shannon_D0,shannon_D5)
+
+
+
+#### PD
+pd_treefile_D0 <- pd(matrix_otu_D0, treefile)
+pd_treefile_D5 <- pd(matrix_otu_D5, treefile)
+plot(x=1:14,y=pd_treefile_D0$PD, main="Evolution de phylogenetic diversity (PD) \n entre D0 et D5 pour les 14 individus",ylab="PD",ylim=c(12,20))
+points(x=1:14,y=pd_treefile_D5$PD,col="red")
+legend(legend=c("D0","D5"), 
+       fill=c("black","red"), 'topleft',lty=0)
+
+plot(pd_treefile_D0$PD,pd_treefile_D5$PD)
+
+#en prenant en compte l'abondance
+# Calculates mean pairwise distance separating taxa in a community
+mpd_D0 <- mpd(matrix_otu_D0, cophenetic(treefile), abundance.weighted=TRUE)
+mpd_D5 <- mpd(matrix_otu_D5, cophenetic(treefile), abundance.weighted=TRUE)
+plot(x=1:14,y=mpd_D0, main="Evolution de phylogenetic diversity weighted \n entre D0 et D5 pour les 14 individus",ylab="MPD",ylim=c(0.5,1))
+points(x=1:14,y=mpd_D5,col="red")
+legend(legend=c("D0","D5"), 
+       fill=c("black","red"), 'topleft',lty=0)
+
+
 
 
 
@@ -241,6 +265,9 @@ ggplot(analyse_phylum_gpe) + aes(x=Groupe, y=moy, fill=Phylum)+
   labs(title="Répartition des bactéries dans les groupes \n en moyenne pour les 28 indiv", 
        x="Groupes issus CAH", y = "Nombre d'OTU")
 
+
+
+
 ###### EVOLUTION D0 ET D5
 ggplot(analyse_phylum_gpe) + aes(x=Groupe, y=X27, fill=Phylum)+
   geom_bar(stat="identity", position=position_dodge())+ylim(0,100)+
@@ -264,7 +291,7 @@ plot(hclust(vegdist(t(group3_prop), index='jaccard'), method='ward.D'))
 
 colnames(beta_dist1)=colnames(beta_dist2)=colnames(beta_dist3)=substr(rownames(beta_dist1), 4,4)
 rownames(beta_dist1)=rownames(beta_dist2)=rownames(beta_dist3)=as.factor(substr(rownames(beta_dist1), 6,7))
-layout(matrix(c(1,2), nrow = T))
+#layout(matrix(c(1,2), nrow = T))
 #time factor
 T_Factor1=T_Factor2=T_Factor3=NULL
 for (i in unique(colnames(beta_dist1))){
@@ -281,7 +308,7 @@ for (i in unique(colnames(beta_dist1))){
 }
 boxplot(tibble('Group 1'=T_Factor1,'Group 2'=T_Factor2,'Group 3'=T_Factor3), 
         main='Jaccard mean distance between D0/D5 in OTU groups', 
-        col=c('gold', 'tomato','green3'), cex.main=0.5)
+        col=c('gold', 'tomato','green3'))
 
 #Inter-difference
 T_Factor1=T_Factor2=T_Factor3=NULL
@@ -298,7 +325,7 @@ for (i in unique(colnames(beta_dist1))){
 }
 boxplot(tibble('Group 1'=T_Factor1,'Group 2'=T_Factor2,'Group 3'=T_Factor3), 
         main='Jaccard mean distance between individu in OTU groups', 
-        col=c('gold', 'tomato','green3'), cex.main=0.5)
+        col=c('gold', 'tomato','green3'))
 
 ##ON VA MAINTENANT SE CONCENTRER SUR LE GROUPE 2 ET LE GROUPE 1
 
@@ -335,6 +362,8 @@ library(randomForest)
 otu_group1$class= as.numeric(delta)
 model=randomForest::randomForest(class~., otu_group1, mtry=160, ntree=2000)
 varImpPlot(model)
+
+
 
 
 

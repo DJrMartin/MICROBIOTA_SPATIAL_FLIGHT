@@ -8,7 +8,7 @@
 # - bray curtis
 
 library(devtools)
-install_gitlab("arcgl/rmagma")
+#install_gitlab("arcgl/rmagma")
 library(rMAGMA)
 library(tidyverse)
 library(corrplot)
@@ -16,6 +16,7 @@ library(picante)
 library(phylogram)
 library(FactoMineR)
 library(factoextra)
+library(fossil)
 
 load('C:/Users/33638/Documents/stage/MICROBIOTA_SPATIAL_FLIGHT/DATA_PROJECT_1.RData')
 
@@ -123,21 +124,42 @@ for(col in 3:30){
   res=aggregate(group1[,col],list(group1[,"Phylum"]),sum)
   group1_phylum=cbind(group1_phylum,res[,2])
 }
-group1_phylum <- cbind(group1_phylum[,1],t(as.data.frame(apply(as.data.frame(group1_phylum[,2:29]),1,FUN=as.integer))),rep("group1",4))
+#group1_phylum <- cbind(group1_phylum[,1],t(as.data.frame(apply(as.data.frame(group1_phylum[,2:29]),1,FUN=as.integer))),rep("group1",4))
+
+group1_phylum <- as.data.frame(t(as.data.frame(apply(as.data.frame(group1_phylum[,2:29]),1,FUN=as.integer))))
+group1_phylum<-mapply("/",group1_phylum,colSums(group1_phylum))
+row.names(group1_phylum) <- levels(group1$Phylum)
+boxplot(t(group1_phylum), main="Répartition proportion des catégories de Phylum pour les 28 indiv.")
+
 
 group2_phylum=levels(group2$Phylum)
 for(col in 3:30){
   res=aggregate(group2[,col],list(group2[,"Phylum"]),sum)
   group2_phylum=cbind(group2_phylum,res[,2])
 }
-group2_phylum <- cbind(group2_phylum[,1],t(as.data.frame(apply(as.data.frame(group2_phylum[,2:29]),1,FUN=as.integer))),rep("group2",4))
+#group2_phylum <- cbind(group2_phylum[,1],t(as.data.frame(apply(as.data.frame(group2_phylum[,2:29]),1,FUN=as.integer))),rep("group2",4))
+group2_phylum <- as.data.frame(t(as.data.frame(apply(as.data.frame(group2_phylum[,2:29]),1,FUN=as.integer))))
+group2_phylum<-mapply("/",group2_phylum,colSums(group2_phylum))
+row.names(group2_phylum) <- levels(group2$Phylum)
+boxplot(t(group2_phylum), main="Répartition proportion des catégories de Phylum pour les 28 indiv.")
+
+
+
+
 
 group3_phylum=levels(group3$Phylum)
 for(col in 3:30){
   res=aggregate(group3[,col],list(group3[,"Phylum"]),sum)
   group3_phylum=cbind(group3_phylum,res[,2])
 }
-group3_phylum <- cbind(group3_phylum[,1],t(as.data.frame(apply(as.data.frame(group3_phylum[,2:29]),1,FUN=as.integer))),rep("group3",4))
+#group3_phylum <- cbind(group3_phylum[,1],t(as.data.frame(apply(as.data.frame(group3_phylum[,2:29]),1,FUN=as.integer))),rep("group3",4))
+
+group3_phylum <- as.data.frame(t(as.data.frame(apply(as.data.frame(group3_phylum[,2:29]),1,FUN=as.integer))))
+group3_phylum<-mapply("/",group3_phylum,colSums(group3_phylum))
+row.names(group3_phylum) <- levels(group3$Phylum)
+boxplot(t(group3_phylum), main="Répartition proportion des catégories de Phylum pour les 28 indiv.")
+
+
 
 ## on concatene les infos sur les 3 groupes
 analyse_phylum_gpe <- rbind(group1_phylum,group2_phylum,group3_phylum) 
@@ -301,12 +323,12 @@ chao1<-apply(matrix_otu, 1, function(x) chao1(x, taxa.row = T))
 simpson <- vegan::diversity(matrix_otu, index='simpson')
 shannon <-vegan::diversity(matrix_otu, index='shannon')
 
-indice_alpha_div <- as.matrix(data.frame(richness,chao1,simpson,shannon,pd_treefile$PD,pd_dend$PD,mpd,mpd_dend))
+indice_alpha_div <- as.matrix(data.frame(richness,chao1,simpson,shannon,pd_tree=pd_treefile$PD,pd_dend=pd_dend$PD,mpd_tree=mpd,mpd_dend))
 
-heatmap(indice_alpha_div, scale = "col")
+heatmap(indice_alpha_div, scale = "col",margins=c(7,5))
 
-
-
+library(corrplot)
+corrplot(cor(indice_alpha_div),type="upper", tl.col="black")
 #########################
 ### Bray curtis #########
 #########################
@@ -316,8 +338,32 @@ bc <- function(i,j){
   return(1-2*sum(apply(df, 1, min))/ sum(colSums(df)))
 }
 
-bray = outer(as.data.frame(OTU_TSS),as.data.frame(OTU_TSS),Vectorize(bc))
+#bray = outer(as.data.frame(OTU_TSS),as.data.frame(OTU_TSS),Vectorize(bc))
 
 vg_bray=vegdist(OTU_TSS)
 
 
+
+##########################
+##### Rank abundance curve
+##########################
+max_otu <- apply(matrix_otu,1,max)
+max_otu_matrice <- matrix(rep(max_otu,617),nrow = 28)
+matrix_otu_abund <- matrix_otu/max_otu_matrice
+
+indiv1 <- sort(matrix_otu_abund[1,matrix_otu_abund[1,]!=0],decreasing = T)
+indiv2 <- sort(matrix_otu_abund[2,matrix_otu_abund[2,]!=0],decreasing = T)
+plot(indiv1,type="l",main="Rank abundance curve à D0 et D5 pour indiv A",ylab="Proportion relative OTU")
+points(sort(indiv2,decreasing = T),type="l",col="red")
+legend(legend=c("D0","D5"), 
+       fill=c("black","red"), 'topright',lty=0)
+
+#en conserrvant les 617
+plot(sort(matrix_otu_abund[1,],decreasing = T),type="l",main="Rank abundance curve pour indiv A,B et C (à D0)",ylab="Proportion relative OTU",xlim=c(0,200))
+points(sort(matrix_otu_abund[3,],decreasing = T),type="l",col="red")
+points(sort(matrix_otu_abund[5,],decreasing = T),type="l",col="green")
+legend(legend=c("A","B","C"), 
+       fill=c("black","red","green"), 'topright',lty=0)
+
+
+  
