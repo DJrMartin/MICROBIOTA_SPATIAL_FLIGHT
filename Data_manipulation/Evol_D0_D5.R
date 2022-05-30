@@ -134,6 +134,10 @@ legend(legend=c("D0","D5"),
 
 plot(pd_treefile_D0$PD,pd_treefile_D5$PD)
 
+#boxplot
+boxplot(data.frame(D0=pd_treefile_D0$PD,D5=pd_treefile_D5$PD))
+
+
 #en prenant en compte l'abondance
 # Calculates mean pairwise distance separating taxa in a community
 mpd_D0 <- mpd(matrix_otu_D0, cophenetic(treefile), abundance.weighted=TRUE)
@@ -142,9 +146,10 @@ plot(x=1:14,y=mpd_D0, main="Evolution de phylogenetic diversity weighted \n entr
 points(x=1:14,y=mpd_D5,col="red")
 legend(legend=c("D0","D5"), 
        fill=c("black","red"), 'topleft',lty=0)
+#boxplot
+boxplot(data.frame(D0=mpd_D0,D5=mpd_D5),main="Boxplot de Weighted PD")
 
-
-
+wilcox.test(mpd_D0,mpd_D5,paired=T)
 
 
 ###########################################

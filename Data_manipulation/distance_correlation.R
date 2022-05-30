@@ -165,7 +165,7 @@ boxplot(t(group3_phylum), main="Répartition proportion des catégories de Phylu
 analyse_phylum_gpe <- rbind(group1_phylum,group2_phylum,group3_phylum) 
 
 #on fait la moyenne de chaque ligne
-moy <- apply(analyse_phylum_gpe[,2:29],1,function(x) mean(as.integer(x)))
+moy <- apply(analyse_phylum_gpe,1,mean)
 analyse_phylum_gpe <- data.frame(analyse_phylum_gpe,moy)
 analyse_phylum_gpe <- data.frame(analyse_phylum_gpe[,c(1,30)],t(apply(analyse_phylum_gpe[,c(2:29,31)],1,FUN=as.integer)))
 
