@@ -118,7 +118,6 @@ boxplot(data.frame(D0=mpd_D0,D5=mpd_D5),main="Boxplot de Weighted PD")
 #### 6) RANK ABUNDANCE CURVE
 
 
-
 #### 7) DIVERSITY OF CO-OCCURENCE
 #on affecte 0 et 1 en focntion de si abscence ou présence de l'otu
 matrix_otu_01 <- matrix_otu>0
@@ -136,7 +135,6 @@ Dice = function(i,j){
 
 # On calcule la matrice de dissimilarité à l'aide de la fonction `outer` 
 # pour calculer la valeur de dissimilarité pour toutes les paires d'OTU possibles.
-
 MatDiss = outer(as.data.frame(matrix_otu_01),as.data.frame(matrix_otu_01),Vectorize(Jaccard))
 
 # on la transforme en matrice de distance
@@ -145,16 +143,9 @@ dist_01 <- as.dist(MatDiss)
 # on fait une CAH, avec stratégie d'aggrégation de Ward
 cah.01 <- hclust(dist_01,method="ward.D")
 
-#on représente le dendrogramme associé
-plot(cah.01,labels = F)
-plot(treefile, "f", show.tip.label = FALSE, no.margin = TRUE)
-
 # Regardons la courbe de perte d'inertie 
 # (on se contente des 20 premières valeurs pour ne pas "noyer" l'information importante)
 plot(rev(cah.01$height)[1:20],type="b",main="inertie intra")
-# on peut conserver 3 groupes
-plot(cah.01,labels = F)
-rect.hclust(cah.01, 3, border ="blue")
 
 ## on colore selon phylum
 library(dendextend)
@@ -170,29 +161,39 @@ colors_to_use <- colors_to_use[order.dendrogram(dend)]
 labels_colors(dend) <- colors_to_use
 # Now each state has a color
 labels_colors(dend) 
-
 plot(dend, main = "A color for every Phylum")
 rect.hclust(cah.01, 3, border ="blue")
 
+## UNWEIGHTED
+phylo_dend <- as.phylo(dend)
+plot(phylo_dend, "f", show.tip.label = FALSE, no.margin = TRUE)
+pd_dend <- pd(matrix_otu, phylo_dend)
+
+plot(pd_treefile$PD,pd_dend$PD)
+
+#### WEIGHTED
+mpd <- mpd(matrix_otu, cophenetic(treefile), abundance.weighted=TRUE)
+mpd_dend <- mpd(matrix_otu, cophenetic(phylo_dend), abundance.weighted=TRUE)
+mpd_dend_D0 <- mpd(matrix_otu_D0, cophenetic(phylo_dend), abundance.weighted=TRUE)
+mpd_dend_D5 <- mpd(matrix_otu_D5, cophenetic(phylo_dend), abundance.weighted=TRUE)
+
+boxplot(mpd_dend_D0,mpd_dend_D5)
 
 ##### on récupère les groupes
 K=3
 gpe = cutree(cah.01,k=K)
-
 matrix_otu_gpe <- rbind(matrix_otu,gpe)
-
 matrix_otu_gpe_species <- as.data.frame(merge(t(matrix_otu_gpe),species,by="row.names"))
 
 # on va regarder la proportion pour chaque groupe des catégories de Phylum
 group1 <- matrix_otu_gpe_species[matrix_otu_gpe_species[,"gpe"]==1,]
 group1_prop <- apply(group1[,c(2:29)], 2,function(x) as.numeric(x/sum(x)))
-group1 <- data.frame(group1$Row.names,group1_prop*100,group1[,30:ncol(group1)])
+
 group2 <- matrix_otu_gpe_species[matrix_otu_gpe_species[,"gpe"]==2,]
 group2_prop <- apply(group2[,c(2:29)], 2,function(x) as.numeric(x/sum(x)))
-group2 <- data.frame(group2$Row.names,group2_prop*100,group2[,30:ncol(group2)])
+
 group3 <- matrix_otu_gpe_species[matrix_otu_gpe_species[,"gpe"]==3,]
 group3_prop <- apply(group3[,c(2:29)], 2,function(x) as.numeric(x/sum(x)))
-group3 <- data.frame(group3$Row.names,group3_prop*100,group3[,30:ncol(group3)])
 
 group1_phylum=levels(group1$Phylum)
 for(col in 2:29){
@@ -224,37 +225,24 @@ moy <- apply(analyse_phylum_gpe[,2:29],1,mean)
 analyse_phylum_gpe <- data.frame(analyse_phylum_gpe,moy)
 #analyse_phylum_gpe <- data.frame(analyse_phylum_gpe[,c(1,30)],t(apply(analyse_phylum_gpe[,c(2:29,31)],1,FUN=as.integer)))
 
-#X29 la moyenne (pas trop de sens ?)
-ggplot(analyse_phylum_gpe) + aes(x=Groupe, y=moy, fill=Phylum)+
-  geom_bar(stat="identity", position=position_dodge()) +
+#X29 la moyenne
+ggplot(analyse_phylum_gpe, aes(x=Groupe, y=moy, fill=Phylum))+
+  geom_bar(stat="identity", position=position_dodge(), color="black")+
   labs(title="Répartition des bactéries dans les groupes \n en moyenne pour les 28 indiv", 
-       x="Groupes issus CAH", y = "Nombre d'OTU")
-
-###### EVOLUTION D0 ET D5
-ggplot(analyse_phylum_gpe) + aes(x=Groupe, y=X27, fill=Phylum)+
-  geom_bar(stat="identity", position=position_dodge())+ylim(0,100)+
-  labs(title="Répartition des bactéries dans les groupes \n pour individu S à D0", 
-       x="Groupes issus CAH", y = "% d'OTU")+
-  theme(plot.title = element_text(hjust = 0.5))
-ggplot(analyse_phylum_gpe) + aes(x=Groupe, y=X28, fill=Phylum)+
-  geom_bar(stat="identity", position=position_dodge())+ ylim(0,100)+
-  labs(title="Répartition des bactéries dans les groupes \n pour individu S à D5", 
-       x="Groupes issus CAH", y = "% d'OTU")+
-  theme(plot.title = element_text(hjust = 0.5))
+       x="Groupes issus CAH", y = "Nombre d'OTU")+
+  scale_fill_brewer('PHYLUMS', palette='RdYlGn')+
+  theme_minimal()
 
 ##calcul de la distance entre ls individu avec chaque groupe de bacteries.
 beta_dist1<-as.matrix(vegdist(t(group1_prop), index='jaccard'))
 beta_dist2<-as.matrix(vegdist(t(group2_prop), index='jaccard'))
 beta_dist3<-as.matrix(vegdist(t(group3_prop), index='jaccard'))
 
-plot(hclust(vegdist(t(group1_prop), index='jaccard'), method='ward.D'))
-plot(hclust(vegdist(t(group2_prop), index='jaccard'), method='ward.D'))
-plot(hclust(vegdist(t(group3_prop), index='jaccard'), method='ward.D'))
-
 colnames(beta_dist1)=colnames(beta_dist2)=colnames(beta_dist3)=substr(rownames(beta_dist1), 4,4)
 rownames(beta_dist1)=rownames(beta_dist2)=rownames(beta_dist3)=as.factor(substr(rownames(beta_dist1), 6,7))
 
-#layout(matrix(c(1,2), nrow = T))
+layout(matrix(c(1,2), nrow = T))
+library(RColorBrewer)
 #time factor
 T_Factor1=T_Factor2=T_Factor3=NULL
 for (i in unique(colnames(beta_dist1))){
@@ -270,8 +258,8 @@ for (i in unique(colnames(beta_dist1))){
   
 }
 boxplot(tibble('Group 1'=T_Factor1,'Group 2'=T_Factor2,'Group 3'=T_Factor3), 
-        main='Jaccard mean distance between D0/D5 in OTU groups', 
-        col=c('gold', 'tomato','green3'))
+        main='Jaccard distance between \n D0/D5 in OTU groups', 
+        col=brewer.pal(3, 'Set3'), cex.main =0.7)
 
 #Inter-difference
 T_Factor1=T_Factor2=T_Factor3=NULL
@@ -287,7 +275,7 @@ for (i in unique(colnames(beta_dist1))){
                               which(colnames(beta_dist3)==i)][,1]))
 }
 boxplot(tibble('Group 1'=T_Factor1,'Group 2'=T_Factor2,'Group 3'=T_Factor3), 
-        main='Jaccard mean distance between individu in OTU groups', 
-        col=c('gold', 'tomato','green3'))
+        main='Jaccard mean distance between \n individus in OTU groups', 
+        col=brewer.pal(3, 'Set3') , cex.main =0.7)
 
 
