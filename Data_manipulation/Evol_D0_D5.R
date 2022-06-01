@@ -180,7 +180,15 @@ plot(cah.01,labels = F)
 plot(rev(cah.01$height)[1:20],type="b",main="inertie intra")
 # on peut conserver 3 groupes
 plot(cah.01,labels = F)
-rect.hclust(cah.01, 3, border ="blue")
+rect.hclust(cah.01, 3, border ="red")
+
+inertie=c()
+for (i in 1:28){
+  w=which(matrix_otu[i,]>0)
+  dist_01 <- as.dist(MatDiss[w,w])
+  cah.01 <- hclust(dist_01,method="ward.D")
+  inertie=rbind(inertie, rev(cah.01$height)[1:20])
+}
 
 ## UNWEIGHTED
 phylo_dend <- as.phylo(dend)
