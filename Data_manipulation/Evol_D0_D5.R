@@ -151,10 +151,8 @@ plot(pentes)  #indice pour les 28 individus
 plot(pentes, pd_dend[,2])
 
 #### 7) DIVERSITY OF CO-OCCURENCE
-#on affecte 0 et 1 en focntion de si abscence ou présence de l'otu
+#on affecte 0 et 1 en fonction de si abscence ou présence de l'otu
 matrix_otu_01 <- matrix_otu>0
-
-#On calcule les distances
 
 #distance de Jaccard :
 Jaccard = function(i,j){
@@ -174,26 +172,14 @@ dist_01 <- as.dist(MatDiss)
 
 # on fait une CAH, avec stratégie d'aggrégation de Ward
 cah.01 <- hclust(dist_01,method="ward.D")
+#on représente le dendrogramme associé
+plot(cah.01,labels = F)
 
 # Regardons la courbe de perte d'inertie 
 # (on se contente des 20 premières valeurs pour ne pas "noyer" l'information importante)
 plot(rev(cah.01$height)[1:20],type="b",main="inertie intra")
-
-## on colore selon phylum
-library(dendextend)
-dend <- as.dendrogram(cah.01)
-
-# Par défaut les labels n'ont pas de couleurs
-labels_colors(dend)
-
-colors_to_use <- as.numeric(species$Phylum)
-colors_to_use <- colors_to_use[order.dendrogram(dend)]
-
-# Now we can use them
-labels_colors(dend) <- colors_to_use
-# Now each state has a color
-labels_colors(dend) 
-plot(dend, main = "A color for every Phylum")
+# on peut conserver 3 groupes
+plot(cah.01,labels = F)
 rect.hclust(cah.01, 3, border ="blue")
 
 ## UNWEIGHTED
@@ -209,13 +195,12 @@ mpd_dend <- mpd(matrix_otu, cophenetic(phylo_dend), abundance.weighted=TRUE)
 mpd_dend_D0 <- mpd(matrix_otu_D0, cophenetic(phylo_dend), abundance.weighted=TRUE)
 mpd_dend_D5 <- mpd(matrix_otu_D5, cophenetic(phylo_dend), abundance.weighted=TRUE)
 
-boxplot(mpd_dend_D0,mpd_dend_D5)
-
 ##### on récupère les groupes
 K=3
 gpe = cutree(cah.01,k=K)
 matrix_otu_gpe <- rbind(matrix_otu,gpe)
 matrix_otu_gpe_species <- as.data.frame(merge(t(matrix_otu_gpe),species,by="row.names"))
+
 
 # on va regarder la proportion pour chaque groupe des catégories de Phylum
 group1 <- matrix_otu_gpe_species[matrix_otu_gpe_species[,"gpe"]==1,]
