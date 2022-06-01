@@ -148,9 +148,7 @@ for(i in 1:28){
 }
 plot(pentes)  #indice pour les 28 individus
 
-
-
-
+plot(pentes, pd_dend[,2])
 
 #### 7) DIVERSITY OF CO-OCCURENCE
 #on affecte 0 et 1 en focntion de si abscence ou présence de l'otu
