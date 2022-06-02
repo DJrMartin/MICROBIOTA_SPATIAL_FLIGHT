@@ -185,7 +185,7 @@ rect.hclust(cah.01, 3, border ="red")
 
 
 gpe <- cutree(cah.01,k=3)
-matrix_otu_groupe <- rbind(matrix_otu,as.factor(gpe))
+matrix_otu_groupe <- rbind(matrix_otu_01,as.factor(gpe))
 matrix_otu_groupe <- as.data.frame(t(matrix_otu_groupe))
 
 #devrait marcher mais non..
@@ -202,7 +202,7 @@ plot(x, y, col = col,xlim=c(-2,5),ylim=c(-5,5))
 plot(x,y=rep(0,617),col = col, xlim=c(-2,5))
 
 library(factoextra)
-fviz_pca_ind(acp,habillage = 29)
+fviz_pca_ind(acp,habillage = 29,label="None")
 
 inertie_D0=c()
 for (i in 1:14){
