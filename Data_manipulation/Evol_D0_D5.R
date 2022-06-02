@@ -188,21 +188,46 @@ gpe <- cutree(cah.01,k=3)
 matrix_otu_groupe <- rbind(matrix_otu_01,as.factor(gpe))
 matrix_otu_groupe <- as.data.frame(t(matrix_otu_groupe))
 
-#devrait marcher mais non..
-acp <- PCA(matrix_otu_groupe,scale.unit=TRUE,graph=F,quali.sup=29)
-plot(acp,choix="var")
-plot(acp,choix="ind",habillage = 29, col.hab=c("green","blue","red"))
-
+library(factoextra)
+fviz_pca_ind(acp,habillage = 29,label="None")
 
 pca <- PCA(matrix_otu_groupe[,-29],scale.unit=TRUE,graph=F)
 x <- pca$ind$coord[, 1L] # Première dimension de la PCA
 y <- pca$ind$coord[, 2L] # Deuxième dimension de la PCA
 col <- matrix_otu_groupe[,29]
-plot(x, y, col = col,xlim=c(-2,5),ylim=c(-5,5))
+plot(x, y, col = col)
 plot(x,y=rep(0,617),col = col, xlim=c(-2,5))
 
-library(factoextra)
-fviz_pca_ind(acp,habillage = 29,label="None")
+
+
+
+#barycentre
+matrix_grp1 <- matrix_otu_groupe[matrix_otu_groupe[,29]==1,]
+bar_grp1 <- colMeans(matrix_grp1[,-29])
+matrix_grp2 <- matrix_otu_groupe[matrix_otu_groupe[,29]==2,]
+bar_grp2 <- colMeans(matrix_grp2[,-29])
+matrix_grp3 <- matrix_otu_groupe[matrix_otu_groupe[,29]==3,]
+bar_grp3 <- colMeans(matrix_grp3[,-29])
+
+#on recalcule les inerties intra groupes pour les 28 individus
+# par rapport aux barycentres 
+iner_indiv_grp=matrix(data = rep(0,28*3),nrow=3,ncol=28)
+for(i in 1:28){
+  iner_intra1=sum((rep(bar_grp1,nrow(matrix_grp1))-matrix_grp1[,i])^2)
+  iner_intra2=sum((rep(bar_grp2,nrow(matrix_grp2))-matrix_grp2[,i])^2)
+  iner_intra3=sum((rep(bar_grp3,nrow(matrix_grp3))-matrix_grp3[,i])^2)
+  iner_indiv_grp[,i]=c(iner_intra1,iner_intra2,iner_intra3)/617
+}
+
+# Inertie intra pour chacun des individus 
+iner_intra_indiv = colSums(iner_indiv_grp)
+# inertie intra globale 3.597406 : rev(cah.01$height)[3]
+
+
+#boxplot des inerties intra (pas vraiment car inertie intra=somme des 3 groupes,
+#                              ici on détaille par groupe)
+boxplot(t(iner_indiv))
+
 
 inertie_D0=c()
 for (i in 1:14){
