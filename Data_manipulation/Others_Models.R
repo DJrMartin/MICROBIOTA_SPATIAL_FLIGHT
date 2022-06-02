@@ -69,9 +69,26 @@ summary(mod_VO2max)
 mod_weight <- lm(Weight~.,data=phylum_output[,c(1:4,6)])
 summary(mod_weight)
 
-# Forêts aléatoires
+# Forêts aléatoires--------------------------
+library(randomForest)
+ind=sample(1:14,10)
+train <- otu_output[ind,]
+test <- otu_output[-ind,]
 
+set.seed(123) # permet de fixer les paramètres aléatoires de la rf
+rf=randomForest(VO2max~ . , data = train[,c(-619,-620)],importance=T,ntree=500)
+rf
+plot(rf) #200 arbres suffisent
 
+rf.results <- predict(rf,test)
+results <- data.frame(actual = test$VO2max, prediction = rf.results)
+head(results)
+
+varImpPlot(rf)
+    #%IncMSE : correspond au “poids” de la variable dans la diminution de l’erreur par le modèle.
+    #IncNodePurity : correspond à la capacité de la variable à bien discriminer les individus à son noeud
+
+ 
 # Grande dimension : voir cours Laurent Rouviere
 
 
