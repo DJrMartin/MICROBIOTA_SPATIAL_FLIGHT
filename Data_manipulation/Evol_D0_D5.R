@@ -17,6 +17,7 @@ library(geiger)
 library(picante)
 library(stats)
 library(RColorBrewer)
+library(FactoMineR)
 
 #load('C:/Users/33638/Documents/stage/MICROBIOTA_SPATIAL_FLIGHT/DATA_PROJECT_1.RData')
 
@@ -181,6 +182,27 @@ plot(rev(cah.01$height)[1:20],type="b",main="inertie intra")
 # on peut conserver 3 groupes
 plot(cah.01,labels = F)
 rect.hclust(cah.01, 3, border ="red")
+
+
+gpe <- cutree(cah.01,k=3)
+matrix_otu_groupe <- rbind(matrix_otu,as.factor(gpe))
+matrix_otu_groupe <- as.data.frame(t(matrix_otu_groupe))
+
+#devrait marcher mais non..
+acp <- PCA(matrix_otu_groupe,scale.unit=TRUE,graph=F,quali.sup=29)
+plot(acp,choix="var")
+plot(acp,choix="ind",habillage = 29, col.hab=c("green","blue","red"))
+
+
+pca <- PCA(matrix_otu_groupe[,-29],scale.unit=TRUE,graph=F)
+x <- pca$ind$coord[, 1L] # Première dimension de la PCA
+y <- pca$ind$coord[, 2L] # Deuxième dimension de la PCA
+col <- matrix_otu_groupe[,29]
+plot(x, y, col = col,xlim=c(-2,5),ylim=c(-5,5))
+plot(x,y=rep(0,617),col = col, xlim=c(-2,5))
+
+library(factoextra)
+fviz_pca_ind(acp,habillage = 29)
 
 inertie_D0=c()
 for (i in 1:14){
