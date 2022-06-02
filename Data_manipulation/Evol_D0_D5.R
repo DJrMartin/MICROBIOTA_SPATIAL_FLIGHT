@@ -182,13 +182,25 @@ plot(rev(cah.01$height)[1:20],type="b",main="inertie intra")
 plot(cah.01,labels = F)
 rect.hclust(cah.01, 3, border ="red")
 
-inertie=c()
-for (i in 1:28){
-  w=which(matrix_otu[i,]>0)
+inertie_D0=c()
+for (i in 1:14){
+  w=which(matrix_otu_D0[i,]>0)
   dist_01 <- as.dist(MatDiss[w,w])
   cah.01 <- hclust(dist_01,method="ward.D")
-  inertie=rbind(inertie, rev(cah.01$height)[1:20])
+  inertie_D0=rbind(inertie, rev(cah.01$height)[1:20])
 }
+inertie_D5=c()
+for (i in 1:14){
+  w=which(matrix_otu_D5[i,]>0)
+  dist_01 <- as.dist(MatDiss[w,w])
+  cah.01 <- hclust(dist_01,method="ward.D")
+  inertie_D5=rbind(inertie, rev(cah.01$height)[1:20])
+}
+
+
+boxplot(inertie_D0[,4], inertie_D5[,4])
+
+
 
 ## UNWEIGHTED
 phylo_dend <- as.phylo(dend)
