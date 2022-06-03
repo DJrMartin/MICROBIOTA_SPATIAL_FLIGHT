@@ -1,5 +1,9 @@
 #### 7) DIVERSITY OF CO-OCCURENCE
+load('~/Dropbox/Spatial_flight/RData_Microgravity_updata.RData')
 #on affecte 0 et 1 en fonction de si abscence ou présence de l'otu
+nb <- colSums(matrix_otu)
+matrix_otu <- matrix_otu[,nb!=0]  #10 OTU supprimés
+species <- species[nb!=0,]
 matrix_otu_01 <- matrix_otu>0
 
 #distance de Jaccard :
@@ -33,7 +37,7 @@ gpe <- cutree(cah.01,k=3)
 matrix_otu_groupe <- rbind(matrix_otu_01,as.factor(gpe))
 matrix_otu_groupe <- as.data.frame(t(matrix_otu_groupe))
 
-ind=which(matrix_otu_D0[13,]>0)
+ind=which(matrix_otu_01[3,]==TRUE)
 length(ind)
 
 pca <- PCA(matrix_otu_groupe[,-29],scale.unit=TRUE,graph=F)
@@ -50,7 +54,7 @@ xlim=range(x)
 ylim=range(y)
 zlim=range(z)
 s3d <- scatterplot3d(x[which((gpe_correct==1)==TRUE)],y[which((gpe_correct==1)==TRUE)],z[which((gpe_correct==1)==TRUE)],
-                     xlim=xlim, ylim=ylim, zlim=zlim, xlab="PC1 (32%)", ylab="PC2 (9%)", zlab='PC3', main='INDIVIDU Q')
+                     xlim=xlim, ylim=ylim, zlim=zlim, xlab="PC1 (32%)", ylab="PC2 (9%)", zlab='PC3', main='INDIVIDU C')
 s3d$points3d(x[which((gpe_correct==2)==TRUE)],y[which((gpe_correct==2)==TRUE)],z[which((gpe_correct==2)==TRUE)],col = "red", pch = 2)
 s3d$points3d(x[which((gpe_correct==3)==TRUE)],y[which((gpe_correct==3)==TRUE)],z[which((gpe_correct==3)==TRUE)],col = "green3", pch = 5)
 
@@ -61,28 +65,41 @@ for (grp in 1:3){
   bc=rbind(bc,colMeans(matrix_grp1[,-29]))
 }
 
-##Calcul de l'inertie intraclasse pour chaque individu sur chaque composante
-
+##Calcul de l'inertie intra-classe pour chaque individu sur chaque composante
 nk =5
 ngrp = 3
-PCs =PCs_group= NULL
+PCs =PCs_group=PCs_inertie= NULL
 for(i in 1:14){
-  x=which(matrix_otu_D0[i,]>0)
+  x=which(matrix_otu[i,]>0)
   for(grp in 1:ngrp){
     for(k in 1:nk){
+      gpe_correct=gpe[x]
       PCs=c(PCs,sum((pca$ind$coord[x, k][which((gpe_correct==grp)==TRUE)]-bc[grp,k])^2)/length(x))
     }
-    PCs_group=rbind(PCs_group,PCs)
+    PCs_group=c(PCs_group,PCs)
     PCs=NULL
   }
+  PCs_inertie=rbind(PCs_inertie,PCs_group)
+  PCs_group=NULL
 }
-INERTIE=data.frame('ID' = rep(c(as.character(unique(experimental_condition$subject))),each=3 ),
-           'CLUSTER' = rep(c(1,2,3), 14),
-           PCs_group)
-colnames(INERTIE)=c('ID','CLUSTER','PC1','PC2','PC3','PC4','PC5')
-INERTIE$SUM=apply(INERTIE[,c(3:7)],1, sum )
 
-INERTIE[c(which(INERTIE$ID=='C'),which(INERTIE$ID=='D'),which(INERTIE$ID=='Q')),]
+INERTIE=data.frame('ID' = rep(c(as.character(unique(experimental_condition$subject))),each=1 ),
+                   PCs_inertie)
+colnames(INERTIE)=c('ID', paste0(rep("CLUSTER_1_", 5),seq(1,5,by=1)),paste0(rep("CLUSTER_2_", 5),seq(1,5,by=1)),
+                    paste0(rep("CLUSTER_3_", 5),seq(1,5,by=1)))
+
+bray=vegan::vegdist(matrix_otu, 'bray')
+bray=as.matrix(bray)
+bray=bray[,seq(1,27, by=2)]
+bray=bray[seq(2,28, by=2),]
+dist=NULL
+
+for(i in 1:14){
+  dist=c(dist, bray[i,i])
+}
+
+INERTIE$Stability=dist>0.35
+summary(glm(Stability~., INERTIE[,-1], family='binomial'))
 
 ###Démontrer la méthode
 #Prenons l'exemple d'un cluster de 100 OTUs pour montrer l'intérêt de la méthode
