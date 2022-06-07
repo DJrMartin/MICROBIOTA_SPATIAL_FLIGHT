@@ -16,8 +16,6 @@ Dice = function(i,j){
 }
 
 MatDiss = outer(as.data.frame(matrix_otu_01),as.data.frame(matrix_otu_01),Vectorize(Jaccard))
-
-# on la transforme en matrice de distance
 dist_01 <- as.dist(MatDiss)
 
 # on fait une CAH, avec stratégie d'aggrégation de Ward
@@ -37,7 +35,7 @@ gpe <- cutree(cah.01,k=3)
 matrix_otu_groupe <- rbind(matrix_otu_01,as.factor(gpe))
 matrix_otu_groupe <- as.data.frame(t(matrix_otu_groupe))
 
-ind=which(matrix_otu_01[3,]==TRUE)
+ind=which(matrix_otu_01[4,]==TRUE)
 length(ind)
 
 library(FactoMineR)
@@ -56,7 +54,7 @@ ylim=range(y)
 zlim=range(z)
 
 s3d <- scatterplot3d(x[which((gpe_correct==1)==TRUE)],y[which((gpe_correct==1)==TRUE)],z[which((gpe_correct==1)==TRUE)],
-                     xlim=xlim, ylim=ylim, zlim=zlim, xlab="PC1 (32%)", ylab="PC2 (9%)", zlab='PC3', main='INDIVIDU C')
+                     xlim=xlim, ylim=ylim, zlim=zlim, xlab="PC1 (32%)", ylab="PC2 (9%)", zlab='PC3', main='INDIVIDU D')
 s3d$points3d(x[which((gpe_correct==2)==TRUE)],y[which((gpe_correct==2)==TRUE)],z[which((gpe_correct==2)==TRUE)],col = "red", pch = 2)
 s3d$points3d(x[which((gpe_correct==3)==TRUE)],y[which((gpe_correct==3)==TRUE)],z[which((gpe_correct==3)==TRUE)],col = "green3", pch = 5)
 
@@ -70,7 +68,7 @@ for (grp in 1:3){
 ##Calcul de l'inertie intra-classe pour chaque individu sur chaque composante
 nk =5
 ngrp = 3
-PCs =PCs_group=PCs_inertie= NULL
+PCs =PCs_group=PCs_inertie=INERTIE_sum=INERTIE_local=NULL
 for(i in 1:14){
   x=which(matrix_otu[i,]>0)
   for(grp in 1:ngrp){
@@ -78,40 +76,23 @@ for(i in 1:14){
       gpe_correct=gpe[x]
       PCs=c(PCs,sum((pca$ind$coord[x, k][which((gpe_correct==grp)==TRUE)]-bc[grp,k])^2)/length(x))
     }
+    INERTIE_local=c(INERTIE_local,sum(PCs))
     PCs_group=c(PCs_group,PCs)
     PCs=NULL
   }
+  INERTIE_sum=rbind(INERTIE_sum,INERTIE_local)
   PCs_inertie=rbind(PCs_inertie,PCs_group)
-  PCs_group=NULL
+  PCs_group=INERTIE_local=NULL
 }
 
 INERTIE=data.frame('ID' = rep(c(as.character(unique(experimental_condition$subject))),each=1 ),
                    PCs_inertie)
-rownames(INERTIE)=INERTIE$ID
+rownames(INERTIE)=rownames(INERTIE_sum)=INERTIE$ID
 colnames(INERTIE)=c('ID', paste0(rep("CLUSTER_1_", 5),seq(1,5,by=1)),paste0(rep("CLUSTER_2_", 5),seq(1,5,by=1)),
                     paste0(rep("CLUSTER_3_", 5),seq(1,5,by=1)))
 
-library(randomForest)
-#Stability
-bray=vegan::vegdist(matrix_otu, 'bray')
-bray=as.matrix(bray)
-bray=bray[,seq(1,27, by=2)]
-bray=bray[seq(2,28, by=2),]
-dist=NULL
-
-for(i in 1:14){
-  dist=c(dist, bray[i,i])
-}
-
-INERTIE$Y=dist>0.35
-#leaveONEout
-x_test=prediction=NULL
-for (i in 1:14){
-  rf=(randomForest(Y~., INERTIE[-i,-1]))
-  prediction=c(prediction,predict(rf,INERTIE[i,-c(1,17)], type='response'))
-  x_test=c(x_test,dist[i]>0.35)
-}
-plot(x_test,prediction)
+colnames(INERTIE_sum)=c('Dim_1','Dim_2','Dim_3')
+INERTIE_sum[c(3,4,13),]
 
 #Masse maigre (abs et rel)
 load('~/Dropbox/Spatial_flight/RData_Microgravity_updata.RData')
@@ -127,7 +108,7 @@ INERTIE$Y=as.factor(INERTIE$Y)
 #leaveONEout
 x_test=prediction=NULL
 cnt=1
-while (cnt<25){
+while (cnt<20){
   w=sample(1:14, 2)
   rf=randomForest(Y~., INERTIE[-c(w),-1])
   prediction=c(prediction,predict(rf,INERTIE[w,-c(1,17)], type ='prob')[,1])
