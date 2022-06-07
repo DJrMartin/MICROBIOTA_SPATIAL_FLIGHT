@@ -148,22 +148,24 @@ experimental_condition$ID=paste(as.character(experimental_condition$subject), re
 VO2=merge(morphological_data,experimental_condition, by="ID")
 
 INERTIE$Y=as.numeric(VO2$VO2max[which(VO2$time=='D0')])/
-  as.numeric(VO2$Weight[which(VO2$time=='D0')])
+  as.numeric(VO2$Weight[which(VO2$time=='D0')])<45
+INERTIE$Y=as.factor(INERTIE$Y)
 
 #leaveONEout
 x_test=prediction=NULL
 cnt=1
 while (cnt<50){
-  w=sample(1:14, 2)
+  w=sample(1:14,2)
   rf=randomForest(Y~., INERTIE[-c(w),-1])
-  prediction=c(prediction,predict(rf,INERTIE[w,-c(1,20)]))
+  prediction=c(prediction,predict(rf,INERTIE[w,-c(1,17)], type='prob')[,1])
   x_test=c(x_test,INERTIE$Y[c(w)])
   cnt=cnt+1
 }
 
-plot(prediction~x_test)
-summary(lm((x_test~prediction)))
-varImpPlot(rf)
+boxplot(prediction~x_test,xlab='< ou > à 45mL/min/kg', ylab='Probabilité de prédiction')
+summary(glm((x_test~prediction)))
+pROC::auc(x_test,prediction)
+
 
 #weigth
 
