@@ -113,6 +113,7 @@ plot(x_test,prediction)
 
 #Masse maigre (abs et rel)
 load('~/Dropbox/Spatial_flight/RData_Microgravity_updata.RData')
+PCA(matrix_otu)
 lM1=lM[-1,]
 colnames(lM1)[1]='ID'
 lM1$ID=paste(as.character(lM1$ID), rep(c(1,2), each=1))
@@ -120,18 +121,24 @@ experimental_condition$ID=paste(as.character(experimental_condition$subject), re
 lM2=merge(lM1,experimental_condition, by="ID")
 
 INERTIE$Y=as.numeric(as.character(lM2$Whole.Body.Lean.mass[which(lM2$time=='D0')]))
+
 #leaveONEout
 x_test=prediction=NULL
+
 for (i in 1:14){
   rf=randomForest(Y~., INERTIE[-i,-1])
   prediction=c(prediction,predict(rf,INERTIE[i,-c(1,17)]))
   x_test=c(x_test,INERTIE$Y[i])
 }
+
 plot(x_test,prediction)
 summary(lm((x_test~prediction)))
+
 varImpPlot(rf)
+rf$predicted
 
 #VO2 max (abs et rel)
+
 
 #weigth
 
