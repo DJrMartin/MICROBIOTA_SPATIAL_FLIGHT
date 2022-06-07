@@ -1,9 +1,9 @@
 ##Creation du RData avec l'ensemble des données
-setwd(dir='C:/Users/David/Downloads')
+setwd(dir='~/Dropbox/Spatial_flight/')
 ##Tree
 metadata<- read.table("MetaCNES_D0_D5paired.tsv", sep = ";", row.names=1, header=TRUE, fill = TRUE, stringsAsFactors = TRUE)
 ##BIOM
-frogs.data <- import_frogs("C:/Users/David/Downloads/abundance.biom1")
+frogs.data <- import_frogs("abundance.biom1")
 sample_data(frogs.data) <- metadata
 frogs.data
 
@@ -22,5 +22,11 @@ morphological_data=as.matrix(gsub(',', '.', apply(morphological_data, 2, as.char
 ##Data IRM
 IRM_Fe_content=read.table("IRM_Fe_content.csv", sep = ";", stringsAsFactors = TRUE, header=TRUE)
 
-save(metalome,morphological_data,IRM_Fe_content,matrix_otu, species, experimental_condition, metalome, file='DATA_PROJECT_1.RData')
+load("~/Dropbox/Spatial_flight/RData_Microgravity_updata.RData")
+##Lean Mass
+lM=read.table("LEAN_MASS.csv", sep = ";", stringsAsFactors = TRUE, header=TRUE)
+
+save(lM,metalome,morphological_data,IRM_Fe_content,matrix_otu, species, 
+     experimental_condition, metalome, 
+     file='~/Dropbox/Spatial_flight/RData_Microgravity_updata.RData')
 

@@ -40,6 +40,7 @@ matrix_otu_groupe <- as.data.frame(t(matrix_otu_groupe))
 ind=which(matrix_otu_01[3,]==TRUE)
 length(ind)
 
+library(FactoMineR)
 pca <- PCA(matrix_otu_groupe[,-29],scale.unit=TRUE,graph=F)
 x <- pca$ind$coord[ind, 1L] # Première dimension de la PCA
 y <- pca$ind$coord[ind, 2L] # Deuxième dimension de la PCA
@@ -88,6 +89,8 @@ INERTIE=data.frame('ID' = rep(c(as.character(unique(experimental_condition$subje
 colnames(INERTIE)=c('ID', paste0(rep("CLUSTER_1_", 5),seq(1,5,by=1)),paste0(rep("CLUSTER_2_", 5),seq(1,5,by=1)),
                     paste0(rep("CLUSTER_3_", 5),seq(1,5,by=1)))
 
+library(randomForest)
+#Stability
 bray=vegan::vegdist(matrix_otu, 'bray')
 bray=as.matrix(bray)
 bray=bray[,seq(1,27, by=2)]
@@ -98,8 +101,39 @@ for(i in 1:14){
   dist=c(dist, bray[i,i])
 }
 
-INERTIE$Stability=dist>0.35
-summary(glm(Stability~., INERTIE[,-1], family='binomial'))
+INERTIE$Y=dist>0.35
+#leaveONEout
+x_test=prediction=NULL
+for (i in 1:14){
+  rf=(randomForest(Y~., INERTIE[-i,-1]))
+  prediction=c(prediction,predict(rf,INERTIE[i,-c(1,17)], type='response'))
+  x_test=c(x_test,dist[i]>0.35)
+}
+plot(x_test,prediction)
+
+#Masse maigre (abs et rel)
+load('~/Dropbox/Spatial_flight/RData_Microgravity_updata.RData')
+lM1=lM[-1,]
+colnames(lM1)[1]='ID'
+lM1$ID=paste(as.character(lM1$ID), rep(c(1,2), each=1))
+experimental_condition$ID=paste(as.character(experimental_condition$subject), rep(c(1,2), each=1))
+lM2=merge(lM1,experimental_condition, by="ID")
+
+INERTIE$Y=as.numeric(as.character(lM2$Whole.Body.Lean.mass[which(lM2$time=='D0')]))
+#leaveONEout
+x_test=prediction=NULL
+for (i in 1:14){
+  rf=randomForest(Y~., INERTIE[-i,-1])
+  prediction=c(prediction,predict(rf,INERTIE[i,-c(1,17)]))
+  x_test=c(x_test,INERTIE$Y[i])
+}
+plot(x_test,prediction)
+summary(lm((x_test~prediction)))
+varImpPlot(rf)
+
+#VO2 max (abs et rel)
+
+#weigth
 
 ###Démontrer la méthode
 #Prenons l'exemple d'un cluster de 100 OTUs pour montrer l'intérêt de la méthode
@@ -129,7 +163,8 @@ simpson_total=diversity(abondance, 'simpson')
 set.seed(1)
 i=1
 PC1.fluctuation=PC2.fluctuation=PC3.fluctuation=inertie=sh=sp=rch=NULL
-while(i < 100){
+
+while(i < 2000){
   random=sample(1:100)[1:50]
   new=abundance[random,]
   PC1.fluctuation=c(PC1.fluctuation,sum((new$x-bc[1])^2)/length(new$x))
@@ -144,16 +179,8 @@ while(i < 100){
   i=i+1
 }
 
-which(inertie==max(inertie))
-plot(inertie)
-
 library(pheatmap)
-data.frame(PC1.fluctuation,PC2.fluctuation,PC3.fluctuation,inertie,sh,sp)
 pheatmap(scale(data.frame(PC1.fluctuation,PC2.fluctuation,PC3.fluctuation,
                           sum_inertie=inertie,
                           'Shannon'=sh,'Simpson'=sp)))
-s3d <- scatterplot3d(new$x,new$y,new$z,main='INERTIA MAX', xlab='x', ylab='y', zlab='z')    
-s3d$points3d(bc[1],bc[2],
-             bc[3],col='red', pch=16, cex=2)
-diversity(new$abondance, 'shannon')
 
