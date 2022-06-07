@@ -54,6 +54,7 @@ library('scatterplot3d')
 xlim=range(x)
 ylim=range(y)
 zlim=range(z)
+
 s3d <- scatterplot3d(x[which((gpe_correct==1)==TRUE)],y[which((gpe_correct==1)==TRUE)],z[which((gpe_correct==1)==TRUE)],
                      xlim=xlim, ylim=ylim, zlim=zlim, xlab="PC1 (32%)", ylab="PC2 (9%)", zlab='PC3', main='INDIVIDU C')
 s3d$points3d(x[which((gpe_correct==2)==TRUE)],y[which((gpe_correct==2)==TRUE)],z[which((gpe_correct==2)==TRUE)],col = "red", pch = 2)
@@ -86,6 +87,7 @@ for(i in 1:14){
 
 INERTIE=data.frame('ID' = rep(c(as.character(unique(experimental_condition$subject))),each=1 ),
                    PCs_inertie)
+rownames(INERTIE)=INERTIE$ID
 colnames(INERTIE)=c('ID', paste0(rep("CLUSTER_1_", 5),seq(1,5,by=1)),paste0(rep("CLUSTER_2_", 5),seq(1,5,by=1)),
                     paste0(rep("CLUSTER_3_", 5),seq(1,5,by=1)))
 
@@ -113,7 +115,7 @@ plot(x_test,prediction)
 
 #Masse maigre (abs et rel)
 load('~/Dropbox/Spatial_flight/RData_Microgravity_updata.RData')
-PCA(matrix_otu)
+
 lM1=lM[-1,]
 colnames(lM1)[1]='ID'
 lM1$ID=paste(as.character(lM1$ID), rep(c(1,2), each=1))
@@ -124,21 +126,43 @@ INERTIE$Y=as.numeric(as.character(lM2$Whole.Body.Lean.mass[which(lM2$time=='D0')
 
 #leaveONEout
 x_test=prediction=NULL
-
-for (i in 1:14){
-  rf=randomForest(Y~., INERTIE[-i,-1])
-  prediction=c(prediction,predict(rf,INERTIE[i,-c(1,17)]))
-  x_test=c(x_test,INERTIE$Y[i])
+cnt=1
+while (cnt<100){
+  w=sample(1:14, 1)
+  rf=randomForest(Y~., INERTIE[-c(w),-1])
+  prediction=c(prediction,predict(rf,INERTIE[w,-c(1,20)]))
+  x_test=c(x_test,INERTIE$Y[c(w)])
+  cnt=cnt+1
 }
 
-plot(x_test,prediction)
+plot(prediction~x_test)
+pROC::auc(x_test,prediction)
 summary(lm((x_test~prediction)))
-
 varImpPlot(rf)
-rf$predicted
+#cluster 2 globalement
 
 #VO2 max (abs et rel)
+morphological_data=data.frame( morphological_data)
+morphological_data$ID=paste(as.character(morphological_data$ID), rep(c(1,2), each=1))
+experimental_condition$ID=paste(as.character(experimental_condition$subject), rep(c(1,2), each=1))
+VO2=merge(morphological_data,experimental_condition, by="ID")
 
+INERTIE$Y=as.numeric(VO2$VO2max[which(VO2$time=='D0')])/
+  as.numeric(VO2$Weight[which(VO2$time=='D0')])
+#leaveONEout
+x_test=prediction=NULL
+cnt=1
+while (cnt<50){
+  w=sample(1:14, 2)
+  rf=randomForest(Y~., INERTIE[-c(w),-1])
+  prediction=c(prediction,predict(rf,INERTIE[w,-c(1,20)]))
+  x_test=c(x_test,INERTIE$Y[c(w)])
+  cnt=cnt+1
+}
+
+plot(prediction~x_test)
+summary(lm((x_test~prediction)))
+varImpPlot(rf)
 
 #weigth
 
