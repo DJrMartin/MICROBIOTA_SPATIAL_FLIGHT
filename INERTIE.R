@@ -95,6 +95,7 @@ colnames(INERTIE_sum)=c('Dim_1','Dim_2','Dim_3')
 INERTIE_sum[c(3,4,13),]
 
 #Masse maigre (abs et rel)
+library(randomForest)
 load('~/Dropbox/Spatial_flight/RData_Microgravity_updata.RData')
 
 lM1=lM[-1,]
@@ -103,24 +104,24 @@ lM1$ID=paste(as.character(lM1$ID), rep(c(1,2), each=1))
 experimental_condition$ID=paste(as.character(experimental_condition$subject), rep(c(1,2), each=1))
 lM2=merge(lM1,experimental_condition, by="ID")
 
+set.seed(123)
 INERTIE$Y=as.numeric(as.character(lM2$Whole.Body.Lean.mass[which(lM2$time=='D0')]))>55000
 INERTIE$Y=as.factor(INERTIE$Y)
 #leaveONEout
 x_test=prediction=NULL
 cnt=1
 while (cnt<20){
-  w=sample(1:14, 2)
+  w=sample(1:14, 1)
   rf=randomForest(Y~., INERTIE[-c(w),-1])
-  prediction=c(prediction,predict(rf,INERTIE[w,-c(1,17)], type ='prob')[,1])
+  prediction=c(prediction,predict(rf,INERTIE[w,-c(1,17)]))
   x_test=c(x_test,INERTIE$Y[c(w)])
   cnt=cnt+1
 }
 
-boxplot(prediction~x_test, xlab='> ou < à 55kg', ylab='Probabilité de prédiction')
+plot(prediction~x_test, xlab='> ou < à 55kg', ylab='Probabilité de prédiction')
 pROC::auc(x_test,prediction)
 summary(lm((x_test~prediction)))
 varImpPlot(rf)
-#cluster 2 globalement
 
 #VO2 max (abs et rel)
 morphological_data=data.frame( morphological_data)
@@ -128,8 +129,9 @@ morphological_data$ID=paste(as.character(morphological_data$ID), rep(c(1,2), eac
 experimental_condition$ID=paste(as.character(experimental_condition$subject), rep(c(1,2), each=1))
 VO2=merge(morphological_data,experimental_condition, by="ID")
 
+set.seed(123)
 INERTIE$Y=as.numeric(VO2$VO2max[which(VO2$time=='D0')])/
-  as.numeric(VO2$Weight[which(VO2$time=='D0')])<45
+  as.numeric(VO2$Weight[which(VO2$time=='D0')])>45
 INERTIE$Y=as.factor(INERTIE$Y)
 
 #leaveONEout
@@ -138,15 +140,17 @@ cnt=1
 while (cnt<50){
   w=sample(1:14,2)
   rf=randomForest(Y~., INERTIE[-c(w),-1])
-  prediction=c(prediction,predict(rf,INERTIE[w,-c(1,17)], type='prob')[,1])
+  prediction=c(prediction,predict(rf,INERTIE[w,-c(1,17)], type = 'prob')[,1])
   x_test=c(x_test,INERTIE$Y[c(w)])
   cnt=cnt+1
 }
 
 boxplot(prediction~x_test,xlab='< ou > à 45mL/min/kg', ylab='Probabilité de prédiction')
 summary(glm((x_test~prediction)))
-pROC::auc(x_test,prediction)
-
+au=pROC::roc(x_test,prediction)
+plot(1-au$sensitivities, au$specificities, type='l', xlab='SENSIBILITY', ylab='SPECIFICITY')
+points(1-au$sensitivities, au$specificities, type='l',col='chocolate1')
+#varImpPlot(rf)
 
 #weigth
 
