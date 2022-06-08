@@ -35,7 +35,22 @@ gpe <- cutree(cah.01,k=3)
 matrix_otu_groupe <- rbind(matrix_otu_01,as.factor(gpe))
 matrix_otu_groupe <- as.data.frame(t(matrix_otu_groupe))
 
-ind=which(matrix_otu_01[4,]==TRUE)
+groupe1=matrix_otu[,which(gpe==3)]
+color_visualisation=c('purple', 'tomato', 'lightgreen','lightblue' )
+OTU_phylum=NULL
+for (i in as.character(unique(species$Phylum))){
+  sum_reads=apply(groupe1[, which(species$Phylum[which(gpe==3)]==i)], 1,sum)
+  OTU_phylum=cbind(OTU_phylum,sum_reads)
+}
+rownames(OTU_phylum)=paste(substr(rownames(OTU_phylum), 4,4), rep(c('b','a'), 14))
+colnames(OTU_phylum)=as.character(unique(species$Phylum))
+barplot(t(OTU_phylum), col=color_visualisation, 
+        ylim=c(range(OTU_phylum)[1],range(OTU_phylum)[2]*1.6))
+legend(legend=c(as.character(unique(species$Phylum))), 
+       fill=color_visualisation, 'topleft', ncol=2,
+       cex=0.6, bty='n', lty=0)
+
+ind=which(matrix_otu_01[25,]==TRUE)
 length(ind)
 
 library(FactoMineR)
@@ -54,7 +69,7 @@ ylim=range(y)
 zlim=range(z)
 
 s3d <- scatterplot3d(x[which((gpe_correct==1)==TRUE)],y[which((gpe_correct==1)==TRUE)],z[which((gpe_correct==1)==TRUE)],
-                     xlim=xlim, ylim=ylim, zlim=zlim, xlab="PC1 (32%)", ylab="PC2 (9%)", zlab='PC3', main='INDIVIDU D')
+                     xlim=xlim, ylim=ylim, zlim=zlim, xlab="PC1 (32%)", ylab="PC2 (9%)", zlab='PC3', main='INDIVIDU Q')
 s3d$points3d(x[which((gpe_correct==2)==TRUE)],y[which((gpe_correct==2)==TRUE)],z[which((gpe_correct==2)==TRUE)],col = "red", pch = 2)
 s3d$points3d(x[which((gpe_correct==3)==TRUE)],y[which((gpe_correct==3)==TRUE)],z[which((gpe_correct==3)==TRUE)],col = "green3", pch = 5)
 
@@ -65,11 +80,11 @@ for (grp in 1:3){
   bc=rbind(bc,colMeans(matrix_grp1[,-29]))
 }
 
-##Calcul de l'inertie intra-classe pour chaque individu sur chaque composante
+##Calcul de l'inertie intra-classe pour chaque individu sur chaque composante WEIGTHED
 nk =5
 ngrp = 3
 PCs =PCs_group=PCs_inertie=INERTIE_sum=INERTIE_local=NULL
-for(i in 1:14){
+for(i in 1:28){
   x=which(matrix_otu[i,]>0)
   for(grp in 1:ngrp){
     for(k in 1:nk){
@@ -85,14 +100,13 @@ for(i in 1:14){
   PCs_group=INERTIE_local=NULL
 }
 
-INERTIE=data.frame('ID' = rep(c(as.character(unique(experimental_condition$subject))),each=1 ),
+INERTIE=data.frame('ID' = paste(rep(c(as.character(unique(experimental_condition$subject))),each=2),rep(c('b','a'),2)),
                    PCs_inertie)
 rownames(INERTIE)=rownames(INERTIE_sum)=INERTIE$ID
 colnames(INERTIE)=c('ID', paste0(rep("CLUSTER_1_", 5),seq(1,5,by=1)),paste0(rep("CLUSTER_2_", 5),seq(1,5,by=1)),
                     paste0(rep("CLUSTER_3_", 5),seq(1,5,by=1)))
 
 colnames(INERTIE_sum)=c('Dim_1','Dim_2','Dim_3')
-INERTIE_sum[c(3,4,13),]
 
 #Masse maigre (abs et rel)
 library(randomForest)
@@ -104,17 +118,22 @@ lM1$ID=paste(as.character(lM1$ID), rep(c(1,2), each=1))
 experimental_condition$ID=paste(as.character(experimental_condition$subject), rep(c(1,2), each=1))
 lM2=merge(lM1,experimental_condition, by="ID")
 
+
+INERTIE_D0=data.frame(INERTIE[which(lM2$time=='D0'),-1])
 set.seed(123)
-INERTIE$Y=as.numeric(as.character(lM2$Whole.Body.Lean.mass[which(lM2$time=='D0')]))>55000
-INERTIE$Y=as.factor(INERTIE$Y)
+y=as.numeric(as.character(lM2$Whole.Body.Lean.mass[which(lM2$time=='D0')]))>55000
+res.pca=PCA(INERTIE_D0)
+plot(res.pca$ind$coord[,c(1,2)], col=as.numeric(y)+1)
+INERTIE_D0$Y=as.factor(y)
+
 #leaveONEout
 x_test=prediction=NULL
 cnt=1
 while (cnt<20){
   w=sample(1:14, 1)
-  rf=randomForest(Y~., INERTIE[-c(w),-1])
-  prediction=c(prediction,predict(rf,INERTIE[w,-c(1,17)]))
-  x_test=c(x_test,INERTIE$Y[c(w)])
+  rf=randomForest(Y~., INERTIE_D0[-c(w),])
+  prediction=c(prediction,predict(rf,INERTIE_D0[w,], type='prob')[,1])
+  x_test=c(x_test,INERTIE_D0$Y[c(w)])
   cnt=cnt+1
 }
 
@@ -130,29 +149,25 @@ experimental_condition$ID=paste(as.character(experimental_condition$subject), re
 VO2=merge(morphological_data,experimental_condition, by="ID")
 
 set.seed(123)
-INERTIE$Y=as.numeric(VO2$VO2max[which(VO2$time=='D0')])/
+INERTIE_D0=data.frame(INERTIE[which(VO2$time=='D0'),])
+INERTIE_D0$Y=as.numeric(VO2$VO2max[which(VO2$time=='D0')])/
   as.numeric(VO2$Weight[which(VO2$time=='D0')])>45
-INERTIE$Y=as.factor(INERTIE$Y)
+INERTIE_D0$Y=as.factor(INERTIE_D0$Y)
 
 #leaveONEout
 x_test=prediction=NULL
 cnt=1
 while (cnt<50){
   w=sample(1:14,2)
-  rf=randomForest(Y~., INERTIE[-c(w),-1])
-  prediction=c(prediction,predict(rf,INERTIE[w,-c(1,17)], type = 'prob')[,1])
-  x_test=c(x_test,INERTIE$Y[c(w)])
+  rf=randomForest(Y~., INERTIE_D0[-c(w),-1])
+  prediction=c(prediction,predict(rf,INERTIE_D0[w,-c(1,17)], type = 'prob')[,1])
+  x_test=c(x_test,INERTIE_D0$Y[c(w)])
   cnt=cnt+1
 }
 
 boxplot(prediction~x_test,xlab='< ou > à 45mL/min/kg', ylab='Probabilité de prédiction')
 summary(glm((x_test~prediction)))
-au=pROC::roc(x_test,prediction)
-plot(1-au$sensitivities, au$specificities, type='l', xlab='SENSIBILITY', ylab='SPECIFICITY')
-points(1-au$sensitivities, au$specificities, type='l',col='chocolate1')
-#varImpPlot(rf)
-
-#weigth
+pROC::auc(x_test,prediction)
 
 ###Démontrer la méthode
 #Prenons l'exemple d'un cluster de 100 OTUs pour montrer l'intérêt de la méthode
