@@ -19,7 +19,8 @@ morph_data_D0$VO2max <- as.numeric(morph_data_D0$VO2max)
 morph_data_D0$Weight <- as.numeric(morph_data_D0$Weight)
 morph_data_D0 <- data.frame(morph_data_D0,VO2max_rel=morph_data_D0$VO2max/morph_data_D0$Weight)
 row.names(morph_data_D0) <- morph_data_D0$ID
-morph_data_D0 <- morph_data_D0[,-1]
+morph_data_D0 <- morph_data_D0[,-1]  
+
 
 # Stats desc
 summary(morph_data_D0)
