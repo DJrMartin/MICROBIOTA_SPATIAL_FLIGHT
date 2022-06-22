@@ -1,5 +1,6 @@
 #### 7) DIVERSITY OF CO-OCCURENCE
 load('~/Dropbox/Spatial_flight/RData_Microgravity_updata.RData')
+
 #on affecte 0 et 1 en fonction de si abscence ou présence de l'otu
 nb <- colSums(matrix_otu)
 matrix_otu <- matrix_otu[,nb!=0]  #10 OTU supprimés
@@ -10,21 +11,15 @@ matrix_otu_01 <- matrix_otu>0
 Jaccard = function(i,j){
   return(sum(i!=j)/(sum(i!=j)+sum((i==1 & j==1))))
 }
-#distance de Dice (double poids accords)
-Dice = function(i,j){
-  return(sum(i!=j)/(sum(i!=j)+2*sum((i==1 & j==1))))
-}
 
 MatDiss = outer(as.data.frame(matrix_otu_01),as.data.frame(matrix_otu_01),Vectorize(Jaccard))
 dist_01 <- as.dist(MatDiss)
 
 # on fait une CAH, avec stratégie d'aggrégation de Ward
 cah.01 <- hclust(dist_01,method="ward.D")
-#on représente le dendrogramme associé
 plot(cah.01,labels = F)
 
 # Regardons la courbe de perte d'inertie 
-# (on se contente des 20 premières valeurs pour ne pas "noyer" l'information importante)
 plot(rev(cah.01$height)[1:20],type="b",main="inertie intra")
 # on peut conserver 3 groupes
 plot(cah.01,labels = F)
